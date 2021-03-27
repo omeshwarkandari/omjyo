@@ -1,0 +1,55 @@
+Lister not craeted as Access Permission issue and LB is not able to access log " access log" in disabled state as well as no listner craeted ( Buckets are created)
+
+Listner Issue:
+resource "aws_s3_bucket" "log-bucket" {
+  bucket = "omjyo1" 
+  acl = "log-delivery-write" 
+
+resource "aws_s3_bucket" "source-bucket" { 
+    bucket = "omjyo"    
+    acl = "log-delivery-write"
+
+
+Listner Issue:
+resource "aws_s3_bucket" "log-bucket" {
+  bucket = "omjyo1" 
+  acl = "public-read" 
+
+resource "aws_s3_bucket" "source-bucket" { 
+    bucket = "omjyo"    
+    acl = "log-delivery-write"
+
+
+
+
+
+LB works fine as well as Access Logs enables, evrything works but terrform error needs to eb addressed.
+
+LB Works and Log in S3: Good
+
+resource "aws_s3_bucket" "log-bucket" {
+  bucket = "omjyo1" 
+  acl = "public-read-write" 
+
+resource "aws_s3_bucket" "source-bucket" { 
+    bucket = "omjyo"    
+    acl = "log-delivery-write"
+
+
+LB Works and Log in S3: Good with terraform error
+
+resource "aws_s3_bucket" "log-bucket" {
+  bucket = "omjyo1" 
+  acl = "public-read-write" 
+
+resource "aws_s3_bucket" "source-bucket" { 
+    bucket = "omjyo"    
+    acl = "public-read-write"
+
+"Error: Error putting S3 logging: InvalidTargetBucketForLogging: You must give the log-delivery group WRITE and READ_ACP permissions to the target bucket
+        status code: 400, request id: D954A711FPS99NA3, host id: ebCtdPc7kH/XBKVQ7roEg1EAH3Lr+75NH1I/vhELreEHz5f7K7xcrhJulaDQfq3pBbgb71IFfrw=
+
+  on S3.tf line 304, in resource "aws_s3_bucket" "source-bucket":
+ 304: resource "aws_s3_bucket" "source-bucket" {"
+
+
