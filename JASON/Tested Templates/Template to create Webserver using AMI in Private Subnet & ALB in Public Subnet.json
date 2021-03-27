@@ -1,0 +1,131 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": " Template will create an Application Load Balancer in the Public Subners listening on port 80 and managing two WebServers created through AMI in the private Subnets, We need to create a Private VPC, 04 Subnets, ITG, Public RT for Public Subnets, Security Group for Webserevrs & Load Balancer and AMI with a custom webapplication ",
+    "Parameters": {
+        "VPC" : {
+            "Type": "AWS::EC2::VPC::Id"
+        },
+                
+        "PublicSubnet1" : {
+            "Description" : " ID of the Subnet where LoadBalancer is hosted",
+            "Type": "AWS::EC2::Subnet::Id"
+        },
+
+        "PublicSubnet2" : {
+            "Description" : "ID of the Subnet where LoadBalancer is hosted",
+            "Type": "AWS::EC2::Subnet::Id"
+        },
+
+        "PrivateSubnet1" : {
+            "Description" : "ID of the Subnet where WebServer is hosted",
+            "Type": "AWS::EC2::Subnet::Id"
+        },
+
+         "PrivateSubnet2" : {
+            "Description" : "ID of the Subnet where WebServer is hosted",
+            "Type": "AWS::EC2::Subnet::Id"
+        
+        }
+    },
+
+    "Resources" : {
+
+        "WebServer1" : {
+            "Type": "AWS::EC2::Instance",
+            "Properties" : {
+                "ImageId" : "ami-0671931583c3bc7cd",
+                "InstanceType" : "t2.micro",
+                "SubnetId" : {
+                    "Ref" : "PrivateSubnet1"
+                },
+                "SecurityGroupIds" : [
+                    "SG ID for Webserver"
+                ]
+            }            
+        },
+
+        "WebServer2" : {
+            "Type": "AWS::EC2::Instance",
+            "Properties" : {
+                "ImageId" : "ami-0671931583c3bc7cd",
+                "InstanceType" : "t2.micro",
+                "SubnetId" : {
+                    "Ref" : "PrivateSubnet2"
+                },
+                "SecurityGroupIds" : [
+                    "SG ID for Webserver"
+                ]
+            }            
+        },
+
+        "LoadBalancer" : {
+            "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+            "Properties": {
+                "Subnets": [
+                    {
+                        "Ref": "PublicSubnet1"
+                    },
+                    {
+                        "Ref": "PublicSubnet2"
+                    }
+                ],
+                "Type" : "application",
+                "IpAddressType" : "ipv4",
+                "SecurityGroups" : ["SG ID for Load Balancer"]
+            }
+        },
+
+        "TargetGroup" : {
+            "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",             
+            "DependsOn" : ["WebServer1","WebServer2"],
+            "Properties": {
+                "Name" : "MyTargets",
+                "Port": "80",
+                "Protocol": "HTTP",
+                "TargetType" : "instance",
+                "Targets": [
+                    {
+                        "Id": {
+                            "Ref": "WebServer1"
+                        },
+                        "Port": "80"
+                    },
+                    {
+                        "Id": {
+                            "Ref": "WebServer2"
+                        },
+                        "Port": "80"
+                    }
+                ],
+                "TargetGroupAttributes" : [
+                    {
+                        "Key" : "deregistration_delay.timeout_seconds",
+                        "Value" : "60"
+                    }                    
+                ],
+                "VpcId" : {
+                    "Ref" : "VPC"
+                }
+            }
+        },
+    
+        "Listener": {
+            "Type": "AWS::ElasticLoadBalancingV2::Listener",
+            "Properties": {
+                "DefaultActions": [
+                    {
+                        "Type": "forward",
+                        "TargetGroupArn": {
+                            "Ref": "TargetGroup"
+                        }
+                    }
+                ],
+                "LoadBalancerArn": {
+                    "Ref": "LoadBalancer"
+                },
+                "Port": "80",
+                "Protocol": "HTTP"
+            }
+        }
+    }       
+}

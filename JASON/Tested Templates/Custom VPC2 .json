@@ -1,0 +1,305 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Template to Launch Custom VPC (EnableDnsSupport, EnableDnsHostnames, ITG, Public Subnet/Route/NACL, NAT/EIP, PrivateSubnet/Route/NACL), PublicSecurityGroup & PrivateSecurityGrup, Webserver in Public & AppServer in Private Subnet",
+    
+    "Parameters" : {
+        "KeyName" : {
+        "Description" : "Name of the existing Key Pair to access EC2 Instance",
+            "Type" : "AWS::EC2::KeyPair::KeyName",
+            "Default" : "Sample",
+            "MinLength" : "1",
+            "MaxLength" : "64",
+            "AllowedPattern" : "[-_ a-zA-Z0-9]*",
+            "ConstraintDescription" : "can contain only alphanumeric characters, spaces, dashes and underscores."
+        },
+        "InstanceType" : {
+            "Description" : "Webserver",
+            "Type" : "String",
+            "Default" : "t2.micro",
+            "AllowedValues" : [ "t1.micro", "t2.micro", "t2.small" ],
+            "ConstraintDescription" : "must be a valid EC2 instance type."  
+        }
+    },        
+
+    "Mappings" : {
+        "AWSInstanceType2Arch"    : {
+            "t1.micro"            : { "Arch" : "HVM64" },
+            "t2.micro"            : { "Arch" : "HVM64" },
+            "t2.small"            : { "Arch" : "HVM64" }
+        },          
+        "AWSRegionArch2AMI"       : {
+            "us-east-1"           : { "HVM64" : "ami-072519eedc1730252" },
+            "us-west-2"           : { "HVM64" : "ami-0928f4202481dfdf6" },
+            "ap-south-1"          : { "HVM64" : "ami-073c8c0760395aab8" }                        
+        }
+    },
+    
+    "Resources": {
+        "VPC": {
+            "Type": "AWS::EC2::VPC",
+            "Properties": {
+                "CidrBlock": "10.50.0.0/16",
+                "EnableDnsSupport": "true",
+                "EnableDnsHostnames": "true",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Custom_VPC"
+                    }
+                ]
+            }
+        },
+        "PublicSubnet": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "VpcId": { "Ref": "VPC" },                       
+                "CidrBlock": "10.50.1.0/24",
+                "Tags": [
+                    {
+                        "Key"   : "Name",
+                        "Value" : "Public_Subnet"
+                    }
+                ]
+            }
+        },
+        "InternetGateway": {
+            "Type": "AWS::EC2::InternetGateway",
+            "Properties": {
+                "Tags": [
+                    {
+                        "Key"   : "Name",
+                        "Value" : "Custom_IneternetGateway"
+                    }
+                ]
+            }
+        },
+        "VPCGatewayAttachment": {
+            "Type": "AWS::EC2::VPCGatewayAttachment",
+            "Properties": {
+                "VpcId": { "Ref": "VPC" },
+                "InternetGatewayId": { "Ref": "InternetGateway" }
+            }
+        },
+        "PublicRouteTable": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "VpcId": {  "Ref": "VPC"    },                  
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Custom_PublicRT"
+                    }
+                ]
+            }
+        },
+        "PublicRoute": {
+            "Type": "AWS::EC2::Route",
+            "DependsOn": "VPCGatewayAttachment",
+            "Properties": {
+                "RouteTableId": {   "Ref": "PublicRouteTable"   },                
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "GatewayId": {  "Ref": "InternetGateway"    }             
+            }
+        },
+        "PublicSubnetRouteTableAssociation": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "SubnetId": {   "Ref": "PublicSubnet" },                   
+                "RouteTableId": { "Ref": "PublicRouteTable" }
+            }
+        },
+        "PublicSubnetNetworkAclAssociation": {
+            "Type": "AWS::EC2::SubnetNetworkAclAssociation",
+            "Properties": {
+                "SubnetId": { "Ref": "PublicSubnet" },
+                "NetworkAclId": {
+                    "Fn::GetAtt": [
+                        "VPC",
+                        "DefaultNetworkAcl"
+                    ]
+                }
+            }
+        },
+        "PrivateSubnet": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "VpcId": { "Ref": "VPC" },
+                "CidrBlock": "10.50.3.0/24",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Custom_PrivateSubnet"
+                    }
+                ]
+            }
+        },
+        "NAT": {
+            "Type": "AWS::EC2::NatGateway",
+            "Properties": {
+                "AllocationId": {
+                    "Fn::GetAtt": [
+                        "EIP",
+                        "AllocationId"
+                    ]
+                },
+                "SubnetId": { "Ref": "PublicSubnet" },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Custom_NAT"
+                    }
+                ]
+            }
+        },        
+        "EIP": {
+            "Type": "AWS::EC2::EIP",
+            "DependsOn": "VPCGatewayAttachment",
+            "Properties": {
+                "Domain": "VPC"
+            }
+        },
+        "PrivateRouteTable": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "VpcId": { "Ref": "VPC" },                    
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Custom_PrivateRT"
+                    }
+                ]
+            }
+        },
+        "PrivateRoute": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "RouteTableId": { "Ref": "PrivateRouteTable" },                    
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "NatGatewayId": { "Ref": "NAT" }                    
+            }
+        },
+        "PrivateSubnetRouteTableAssociation": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "SubnetId": { "Ref": "PrivateSubnet" },                    
+                "RouteTableId": { "Ref": "PrivateRouteTable" }                    
+            }
+        },
+        "PrivateSubnetNetworkAclAssociation": {
+            "Type": "AWS::EC2::SubnetNetworkAclAssociation",
+            "Properties": {
+                "SubnetId": { "Ref": "PrivateSubnet" },                   
+                "NetworkAclId": {
+                    "Fn::GetAtt": [
+                        "VPC",
+                        "DefaultNetworkAcl"
+                    ]
+                }
+            }
+        },
+        "WebServerSecurityGroup" : {
+          "Type" : "AWS::EC2::SecurityGroup",
+          "Properties" : {
+            "GroupDescription" : "Enable HTTP ingress port22 + SSH port 22",
+            "VpcId"    : { "Ref" : "VPC" }, 
+            "SecurityGroupIngress" : [
+              {"IpProtocol" : "tcp", "FromPort" : "80", "ToPort" : "80", "CidrIp" : "0.0.0.0/0"},
+              {"IpProtocol" : "tcp", "FromPort" : "22", "ToPort" : "22", "CidrIp" : "0.0.0.0/0"}
+            ],
+            "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Public_SG"
+                    }
+                ]
+          }
+        },
+        "WebServer": {
+            "Type": "AWS::EC2::Instance",
+            "DependsOn" : "PublicRoute",
+            "Properties": {
+                "ImageId" : { "Fn::FindInMap" : [ "AWSRegionArch2AMI", { "Ref" : "AWS::Region" },
+                              { "Fn::FindInMap" : [ "AWSInstanceType2Arch", { "Ref" : "InstanceType" }, "Arch" ] } ] },
+                "InstanceType"   : { "Ref" : "InstanceType" },
+                "KeyName"        : { "Ref" : "KeyName" },
+                "NetworkInterfaces" : [
+                { "GroupSet" : [ { "Ref" : "WebServerSecurityGroup" } ],
+                    "AssociatePublicIpAddress" : "true",
+                    "DeviceIndex" : "0",
+                    "DeleteOnTermination" : "true",
+                    "SubnetId" : { "Ref" : "PublicSubnet" }
+                }],
+                "UserData": {"Fn::Base64":{
+                    "Fn::Join":[
+                        "\n",
+                            [
+                                "#!/bin/bash -xe",
+                                "sudo apt update",
+                                "sudo apt install apache2 -y",
+                                "sudo /etc/init.d/apache2 start",
+                                "echo \"<html><body><h1>HelloWorld!</h1></body></html>\" > /var/www/html/index.html",
+                                "echo \"<html><body><h1>I AM HEALTHY!</h1></body></html>\" > /var/www/html/health.html"
+                            ]
+                ]}},
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Webserver"
+                    }
+                ]    
+            } 
+        },       
+        "AppServerSecurityGroup" : {
+                "Type" : "AWS::EC2::SecurityGroup",
+                "Properties" : {
+                    "GroupDescription" : "Enable HTTP ingress port22 + SSH port 22",
+                    "VpcId"    : { "Ref" : "VPC" }, 
+                    "SecurityGroupIngress" : [
+                      {"IpProtocol" : "tcp", "FromPort" : "80", "ToPort" : "80", "CidrIp" : "10.50.1.0/24"},
+                      {"IpProtocol" : "tcp", "FromPort" : "22", "ToPort" : "22", "CidrIp" : "10.50.1.0/24"}
+                    ],
+                    "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Private_SG"
+                    }
+                ]
+                }
+        },
+        "AppServer": {
+            "Type": "AWS::EC2::Instance",
+            "DependsOn" : "PrivateRoute",
+            "Properties": {
+                "ImageId" : { "Fn::FindInMap" : [ "AWSRegionArch2AMI", { "Ref" : "AWS::Region" },
+                              { "Fn::FindInMap" : [ "AWSInstanceType2Arch", { "Ref" : "InstanceType" }, "Arch" ] } ] },
+                "InstanceType"   : { "Ref" : "InstanceType" },
+                "KeyName"        : { "Ref" : "KeyName" },
+                "NetworkInterfaces" : [
+                { "GroupSet" : [ { "Ref" : "AppServerSecurityGroup" } ],
+                    "AssociatePublicIpAddress" : "true",
+                    "DeviceIndex" : "0",
+                    "DeleteOnTermination" : "true",
+                    "SubnetId" : { "Ref" : "PrivateSubnet" }
+                }],
+                "UserData": {"Fn::Base64":{
+                    "Fn::Join":[
+                        "\n",
+                            [
+                                "#!/bin/bash -xe",
+                                "sudo apt update",
+                                "sudo apt install apache2 -y",
+                                "sudo /etc/init.d/apache2 start",
+                                "echo \"<html><body><h1>Welcome to Application Services</h1></body></html>\" > /var/www/html/index.html",
+                                "echo \"<html><body><h1>I AM HEALTHY!</h1></body></html>\" > /var/www/html/health.html"
+                            ]
+                ]}},
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "AppServer"
+                    }
+                ]
+            } 
+        }
+    }
+}
