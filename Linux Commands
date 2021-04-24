@@ -1,0 +1,20 @@
+$ uname -a
+$ uname -v
+$ uname -r
+$ top
+$ htop
+# netstat -tupln
+$ du -a
+# du -sh
+$ du -sh dir-name
+# ps
+# ps aux | grep
+$ ps -ef | grep process/file
+(Stream Editor to view or modify a file e.g. sample.txt)
+# sed 's/old text/ new text /g' sample.txt (Display the file with new text where text is exact same/ not case sensitive / dedicating/standalone)
+# sed 's/old text/ new text /g' sample.txt (Display the file with new text where text is exact same/ case sensitive/ not dedicated)
+# sed -i 's/old text/ new text /g' sample.txt ( Edit the file with new text)
+# sed -n '3,6p' sample.txt (To Display form line 3-6 of the file)
+# sed '2,3d' sample.txt (Display the file by removing line 2-3)
+
+
