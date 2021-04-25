@@ -1,0 +1,45 @@
+
+Jenkins Installation:
+
+# find /usr/lib/jvm/java-1.8* | head -n 3
+( It helps in providing the right Java path)
+
+# nano ~/.bash_profile
+
+M2_HOME=/opt/maven/apache-maven-3.6.3
+M2=/opt/maven/apache-maven-3.6.3/bin
+
+JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.282.b08-1.amzn2.0.1.x86_64
+PATH=$PATH:$HOME/bin:$JAVA_HOME:$M2_HOME:$M2
+
+export PATH
+
+$mvn -v is one way to confirm, however command "mvn clean package" ensures that MVN will build artifacts correctly 
+(in case Maven not installed properly then this command will not run)
+
+[root@ip-172-31-81-34 ~]# mvn clean package
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  0.181 s
+[INFO] Finished at: 2021-04-23T17:22:09Z
+[INFO] ------------------------------------------------------------------------
+[ERROR] The goal you specified requires a project to execute but there is no POM in this directory (/root). Please verify you invoked Maven from the correct directory. -> [Help 1]
+[ERROR]
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR]
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MissingProjectException
+[root@ip-172-31-81-34 ~]#
+
+
+
+Java Home without Maven e.g. in Tocat Sevrver:
+
+JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.282.b08-1.amzn2.0.1.x86_64
+
+PATH=$PATH:$HOME/bin:$JAVA_HOME
+
+export PATH

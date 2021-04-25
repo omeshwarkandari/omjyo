@@ -1,0 +1,15 @@
+54.237.23.131
+
+
+172.31.62.132
+
+
+/var/lib/jenkins/workspace/test/target/HelloWorld-1.war.original
+default path /var/lib/jenkins/workspace/test
+
+ scp <src_file> username@IP:<dest_path>
+
+ubuntu@ip-172-31-62-132:~$ chown -R ubuntu:ubuntu apache-tomcat-9.0.44
+
+copy from ssh agent pipeline syntax to disable strict key checking which is set no already
+sh 'ssh -o StrictHostKeyChecking=no -l cloudbees 192.168.1.106 uname -a'
