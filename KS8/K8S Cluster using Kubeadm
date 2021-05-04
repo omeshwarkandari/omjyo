@@ -20,37 +20,40 @@ On Master and Worker:
 Perform all the commands as root user unless otherwise specified
 
 Install, Enable and start docker service. Use the Docker repository to install docker.
-
 If you use docker from CentOS OS repository, the docker version might be old to work with Kubernetes v1.13.0 and above
-
 yum install -y -q yum-utils device-mapper-persistent-data lvm2 > /dev/null 2>&1
 yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo > /dev/null 2>&1
 yum install -y -q docker-ce >/dev/null 2>&1
-Start Docker services
 
+#Start Docker services
 systemctl enable docker
 systemctl start docker
-Disable SELinux
 
-# Set SELinux in permissive mode (effectively disabling it)
+#Disable SELinux:
+#Security-Enhanced Linux (SELinux) is a Linux kernel security module that provides a mechanism for supporting access control security policies, including mandatory access controls (MAC).
+# Set SELinux in permissive mode (effectively disabling it) and by Disabling the SElinux all containers can easily access host filesystem
 setenforce 0
 sed -i --follow-symlinks 's/^SELINUX=enforcing/SELINUX=disabled/' /etc/sysconfig/selinux
 Disable Firewall
 
+#Disable FIrewall if any
 systemctl disable firewalld
 systemctl stop firewalld
-Disable swap
 
+# Disable swap (To ensure pods are deployed in healthy node rather than nodes maanging its resources to accomodate a pod)
 sed -i '/swap/d' /etc/fstab
 swapoff -a
-Update sysctl settings for Kubernetes networking
 
+Configuring a bridge network:
+A Bridge Container Network Interface (CNI) plug-in enables all the Pods on a node to connect through virtual switch by assigning each pod an IP address on the additional network.
+#Update sysctl settings for Kubernetes networking
 cat >> /etc/sysctl.d/kubernetes.conf <<EOF
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
 EOF
 sysctl --system
-Kubernetes Setup
+
+#Kubernetes Setup
 Add yum repository for kubernetes packages
 cat >>/etc/yum.repos.d/kubernetes.repo<<EOF
 [kubernetes]
