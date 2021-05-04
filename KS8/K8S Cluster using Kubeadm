@@ -3,83 +3,50 @@ Kubeadm is a tool built to provide best-practice "fast paths" for creating Kuber
 secure cluster up and running in a user friendly way. Kubeadm's scope is limited to the local node filesystem and the Kubernetes API, and it is intended to be a 
 composable building block of higher level tools.
 
-Common Kubeadm cmdlets
+Common Kubeadm Commands:
 kubeadm init to bootstrap the initial Kubernetes control-plane node.
 kubeadm join to bootstrap a Kubernetes worker node or an additional control plane node, and join it to the cluster.
 kubeadm upgrade to upgrade a Kubernetes cluster to a newer version.
 kubeadm reset to revert any changes made to this host by kubeadm init or kubeadm join.
 
-Follow this documentation to set up a Kubernetes cluster on CentOS 7 machines.
-
-This documentation guides you in setting up a cluster with one master node and two worker nodes.
+This documentation guides you in setting up a cluster using CentOS with one master node and two worker nodes.
 
 Prerequisites:
-System Requirements
-
+# System Requirements:
 Master: t2.medium (2 CPUs and 2GB Memory)
 Worker Nodes: t2.micro
-
-Open Below ports in the Security Group.
-
+Ports:
 Master node:
 6443 32750 10250 4443 443 8080
-
 On Master node and Worker node:
 179
 
-On Master and Worker:
-Perform all the commands as root user unless otherwise specified
+Perform all the commands as root user unless otherwise specified on Master Nodes and all the Worker Nodes.
 
-Installing Docker on CentOS 7 With Yum
-We should use Docker repository to install docker in CentOS OS to ensure upadted docker version is installed.
-# Meaning of "> /dev/null 2>&1" : ">" means output redirection, "/dev/null" accepts and discards all input; produces no output except errors.
+Step 1. Docker Instalaltion: 
+( To Install Docker on CentOS 7 With Yum we should use Docker repository to ensure upadted docker version is installed.)
+(Meaning of "> /dev/null 2>&1" : ">" means output redirection, "/dev/null" accepts and discards all input; produces no output except errors.
 Whenever a program is executed, the operating system always opens three files, standard input, standard output, and standard error (0, 1 & 2) and 2>&1 simply says 
-redirect standard error to standard output so "> /dev/null 2>&1" directs program to not display anything while executing.
-
+redirect standard error to standard output so "> /dev/null 2>&1" directs program to not display anything while executing.)
 yum install -y -q yum-utils device-mapper-persistent-data lvm2 > /dev/null 2>&1
 yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo > /dev/null 2>&1
 yum install -y -q docker-ce >/dev/null 2>&1
 or
 sudo yum check-update
-# Install Dependencies: yum-utils switch adds the yum-config-manager. Docker uses a device mapper storage driver, and the device-mapper-persistent-data and lvm2 packages 
+(Install Dependencies: yum-utils switch adds the yum-config-manager. Docker uses a device mapper storage driver, and the device-mapper-persistent-data and lvm2 packages) 
 sudo yum install -y yum-utils device-mapper-persistent-data lvm2
-#Add the Docker Repository to CentOS: To install the edge or test versions of Docker, you need to add the Docker CE stable repository to your system
+(Add the Docker Repository to CentOS: To install the edge or test versions of Docker, you need to add the Docker CE stable repository to your system)
 sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-#Install Docker On CentOS Using Yum
+(Install Docker On CentOS Using Yum)
 sudo yum install docker
-#Manage Docker Service: Although Docker is install on CentOS ,however, the service is still not running
-#Start, Enable and check Docker services
+(Manage Docker Service: Although Docker is install on CentOS ,however, the service is still not running so Start, Enable and check Docker services)
 sudo systemctl start docker
 systemctl enable docker
 sudo systemctl status docker0
 
-#Disable SELinux:
-#Security-Enhanced Linux (SELinux) is a Linux kernel security module that provides a mechanism for supporting access control security policies, including mandatory access controls (MAC).
-# Set SELinux in permissive mode (effectively disabling it) and by Disabling the SElinux all containers can easily access host filesystem
-setenforce 0
-sed -i --follow-symlinks 's/^SELINUX=enforcing/SELINUX=disabled/' /etc/sysconfig/selinux
-Disable Firewall
-
-#Disable FIrewall if any
-systemctl disable firewalld
-systemctl stop firewalld
-
-# Disable swap (To ensure pods are deployed in healthy node rather than nodes maanging its resources to accomodate a pod)
-sed -i '/swap/d' /etc/fstab
-swapoff -a
-
-Configuring a bridge network:
-A Bridge Container Network Interface (CNI) plug-in enables all the Pods on a node to connect through virtual switch by assigning each pod an IP address on the additional network.
-#Update sysctl settings for Kubernetes networking
-cat >> /etc/sysctl.d/kubernetes.conf <<EOF
-net.bridge.bridge-nf-call-ip6tables = 1
-net.bridge.bridge-nf-call-iptables = 1
-EOF
-sysctl --system
-
-#Kubernetes Setup
-# Add yum repository for kubernetes packages because we are using Installtion option " Without Package Manager"
-
+Step 2. Adding Kubernetes Packages for CentOS:
+(Kubernetes packages are not available from official CentOS 7 repositories. This step needs to be performed on the Master Node, and each Worker Node you plan on utilizing
+for your container setup. Enter the following command to retrieve the Kubernetes repositories.)
 cat >>/etc/yum.repos.d/kubernetes.repo<<EOF
 [kubernetes]
 name=Kubernetes
@@ -87,8 +54,7 @@ baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
 enabled=1
 gpgcheck=1
 repo_gpgcheck=1
-gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg
-        https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 EOF
 or 
 cat <<EOF | sudo tee /etc/yum.repos.d/kubernetes.repo
@@ -102,14 +68,75 @@ gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cl
 exclude=kubelet kubeadm kubectl
 EOF
 
-#Install Kubernetes
+Step 3: Install kubelet, kubeadm, and kubectl
+(These 3 basic packages are required to be able to use Kubernetes. Install the following package(s) on each node:)
 yum install -y kubeadm-1.15.6-0.x86_64 kubelet-1.15.6-0.x86_64 kubectl-1.15.6-0.x86_64
-Enable and Start kubelet service
+or
+sudo yum install -y kubelet kubeadm kubectl
+(Enable and Start kubelet service)
 systemctl enable kubelet
 systemctl start kubelet
 
-On Master Node:
-Initialize Kubernetes Cluster
+Step 4: Set Hostname on Nodes and Hosts file:
+(To give a unique hostname to each of your nodes)
+sudo hostnamectl set-hostname master-node
+or
+sudo hostnamectl set-hostname worker-node1
+(Make a host entry or DNS record to resolve the hostname for all nodes)
+sudo nano /etc/hosts
+(Private IP Address      host dns name master node)
+(Private IP Address      host dns name worker node)
+
+Step 5: Disable Firewall:
+(The nodes, containers, and pods need to be able to communicate across the cluster to perform their functions. Firewalld is enabled in CentOS by default on the front-end.
+Add the following ports by entering the listed commands)
+On the Master Node enter:
+sudo firewall-cmd --permanent --add-port=6443/tcp
+sudo firewall-cmd --permanent --add-port=2379-2380/tcp
+sudo firewall-cmd --permanent --add-port=10250/tcp
+sudo firewall-cmd --permanent --add-port=10251/tcp
+sudo firewall-cmd --permanent --add-port=10252/tcp
+sudo firewall-cmd --permanent --add-port=10255/tcp
+sudo firewall-cmd --reload
+Enter the following commands on each worker node:
+sudo firewall-cmd --permanent --add-port=10251/tcp
+sudo firewall-cmd --permanent --add-port=10255/tcp
+firewall-cmd --reload
+or
+systemctl disable firewalld
+systemctl stop firewalld
+
+Step 6: Configuring a bridge network and Update Iptables Settings:
+(A Bridge Container Network Interface (CNI) plug-in enables all the Pods on a node to connect through virtual switch by assigning each pod an IP address on the network 
+and Set the net.bridge.bridge-nf-call-iptables to ‘1’ in sysctl config file to ensure that packets are properly processed by IP tables during filtering and port forwarding)
+cat >> /etc/sysctl.d/kubernetes.conf <<EOF
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+EOF
+or
+cat <<EOF > /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+EOF
+sysctl --system
+
+Step 7: Disable SELinux: 
+(The containers need to access the host filesystem: Security-Enhanced Linux (SELinux) is a Linux kernel security module that provides a mechanism for supporting access 
+control security policies with default restricted all so SELinux needs to be set to permissive mode, which effectively disables its security functions)
+setenforce 0
+sed -i --follow-symlinks 's/^SELINUX=enforcing/SELINUX=disabled/' /etc/sysconfig/selinux
+or
+sudo setenforce 0
+sudo sed -i ‘s/^SELINUX=enforcing$/SELINUX=permissive/’ /etc/selinux/config
+
+Step 8: Disable swap
+(To enable the kubelet to work properly so that pods are deployed in healthy node rather than nodes maanging its resources to accomodate a pod)
+sed -i '/swap/d' /etc/fstab
+swapoff -a
+
+Node Specific Configurations:
+
+Master Node: Initialize Kubernetes Cluster
 
 kubeadm init --apiserver-advertise-address=<MasterServerIP> --pod-network-cidr=192.168.0.0/16
 Create a user for kubernetes administration and copy kube config file.
@@ -120,23 +147,24 @@ useradd kubeadmin
 mkdir /home/kubeadmin/.kube
 cp /etc/kubernetes/admin.conf /home/kubeadmin/.kube/config
 chown -R kubeadmin:kubeadmin /home/kubeadmin/.kube
+
+Set Up Pod Network: A Pod Network allows nodes within the cluster to communicate. There are several available Kubernetes networking options.
 Deploy Calico network as a kubeadmin user.
-
-This should be executed as a user (heare as a kubeadmin )
-
 sudo su - kubeadmin 
 kubectl create -f https://docs.projectcalico.org/v3.9/manifests/calico.yaml
-Cluster join command
 
+Deploy Flannel netwoek: edit the firewall rules to allow traffic for the flannel default port 8285.
+sudo kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+
+Cluster join command:
 kubeadm token create --print-join-command
+
 On Worker Node:
-Add worker nodes to cluster
+#Add worker nodes to cluster by using the output from kubeadm token create command in previous step from the master server and run here.
 
-Use the output from kubeadm token create command in previous step from the master server and run here.
-
-Verifying the cluster To Get Nodes status
-
+#Verifying the cluster To Get Nodes status
 kubectl get nodes
-To Get component status
+sudo kubectl get pods --all-namespaces
 
+#To Get component status
 kubectl get cs
