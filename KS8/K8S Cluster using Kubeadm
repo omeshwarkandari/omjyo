@@ -32,6 +32,7 @@ systemctl enable docker
 systemctl start docker
 Disable SELinux
 
+# Set SELinux in permissive mode (effectively disabling it)
 setenforce 0
 sed -i --follow-symlinks 's/^SELINUX=enforcing/SELINUX=disabled/' /etc/sysconfig/selinux
 Disable Firewall
