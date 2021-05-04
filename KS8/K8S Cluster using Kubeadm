@@ -30,15 +30,28 @@ On Master node and Worker node:
 On Master and Worker:
 Perform all the commands as root user unless otherwise specified
 
-#Install, Enable and start docker service. Use the Docker repository to install docker.
-#If you use docker from CentOS OS repository, the docker version might be old to work with Kubernetes v1.13.0 and above
+Installing Docker on CentOS 7 With Yum
+We should use Docker repository to install docker in CentOS OS to ensure upadted docker version is installed.
+# Meaning of "> /dev/null 2>&1" : ">" means output redirection, "/dev/null" accepts and discards all input; produces no output except errors.
+Whenever a program is executed, the operating system always opens three files, standard input, standard output, and standard error (0, 1 & 2) and 2>&1 simply says 
+redirect standard error to standard output so "> /dev/null 2>&1" directs program to not display anything while executing.
+
 yum install -y -q yum-utils device-mapper-persistent-data lvm2 > /dev/null 2>&1
 yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo > /dev/null 2>&1
 yum install -y -q docker-ce >/dev/null 2>&1
-
-#Start Docker services
+or
+sudo yum check-update
+# Install Dependencies: yum-utils switch adds the yum-config-manager. Docker uses a device mapper storage driver, and the device-mapper-persistent-data and lvm2 packages 
+sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+#Add the Docker Repository to CentOS: To install the edge or test versions of Docker, you need to add the Docker CE stable repository to your system
+sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+#Install Docker On CentOS Using Yum
+sudo yum install docker
+#Manage Docker Service: Although Docker is install on CentOS ,however, the service is still not running
+#Start, Enable and check Docker services
+sudo systemctl start docker
 systemctl enable docker
-systemctl start docker
+sudo systemctl status docker0
 
 #Disable SELinux:
 #Security-Enhanced Linux (SELinux) is a Linux kernel security module that provides a mechanism for supporting access control security policies, including mandatory access controls (MAC).
