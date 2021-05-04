@@ -9,4 +9,3 @@ EXPOSE 80
 Copy index.html var/www/html/ 
 HEALTHCHECK CMD curl --fail http://localhost:80/ || exit 1
 ENTRYPOINT service apache2 restart && bash
-
