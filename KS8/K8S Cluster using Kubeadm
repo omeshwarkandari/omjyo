@@ -1,3 +1,14 @@
+What is Kubeadm ?
+Kubeadm is a tool built to provide best-practice "fast paths" for creating Kubernetes clusters. It performs the actions necessary to get a minimum viable, 
+secure cluster up and running in a user friendly way. Kubeadm's scope is limited to the local node filesystem and the Kubernetes API, and it is intended to be a 
+composable building block of higher level tools.
+
+Common Kubeadm cmdlets
+kubeadm init to bootstrap the initial Kubernetes control-plane node.
+kubeadm join to bootstrap a Kubernetes worker node or an additional control plane node, and join it to the cluster.
+kubeadm upgrade to upgrade a Kubernetes cluster to a newer version.
+kubeadm reset to revert any changes made to this host by kubeadm init or kubeadm join.
+
 Follow this documentation to set up a Kubernetes cluster on CentOS 7 machines.
 
 This documentation guides you in setting up a cluster with one master node and two worker nodes.
@@ -19,8 +30,8 @@ On Master node and Worker node:
 On Master and Worker:
 Perform all the commands as root user unless otherwise specified
 
-Install, Enable and start docker service. Use the Docker repository to install docker.
-If you use docker from CentOS OS repository, the docker version might be old to work with Kubernetes v1.13.0 and above
+#Install, Enable and start docker service. Use the Docker repository to install docker.
+#If you use docker from CentOS OS repository, the docker version might be old to work with Kubernetes v1.13.0 and above
 yum install -y -q yum-utils device-mapper-persistent-data lvm2 > /dev/null 2>&1
 yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo > /dev/null 2>&1
 yum install -y -q docker-ce >/dev/null 2>&1
@@ -54,7 +65,8 @@ EOF
 sysctl --system
 
 #Kubernetes Setup
-Add yum repository for kubernetes packages
+# Add yum repository for kubernetes packages because we are using Installtion option " Without Package Manager"
+
 cat >>/etc/yum.repos.d/kubernetes.repo<<EOF
 [kubernetes]
 name=Kubernetes
@@ -65,11 +77,24 @@ repo_gpgcheck=1
 gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg
         https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 EOF
-Install Kubernetes
+or 
+cat <<EOF | sudo tee /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-\$basearch
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+exclude=kubelet kubeadm kubectl
+EOF
+
+#Install Kubernetes
 yum install -y kubeadm-1.15.6-0.x86_64 kubelet-1.15.6-0.x86_64 kubectl-1.15.6-0.x86_64
 Enable and Start kubelet service
 systemctl enable kubelet
 systemctl start kubelet
+
 On Master Node:
 Initialize Kubernetes Cluster
 
