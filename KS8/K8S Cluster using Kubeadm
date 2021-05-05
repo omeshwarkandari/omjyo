@@ -42,24 +42,36 @@ Perform all the commands as root user unless otherwise specified on Master Nodes
 
 Step 1. Docker Instalaltion: 
 ( To Install Docker on CentOS 7 With Yum we should use Docker repository to ensure upadted docker version is installed.)
-(Meaning of "> /dev/null 2>&1" : ">" means output redirection, "/dev/null" accepts and discards all input; produces no output except errors.
-Whenever a program is executed, the operating system always opens three files, standard input, standard output, and standard error (0, 1 & 2) and 2>&1 simply says 
-redirect standard error to standard output so "> /dev/null 2>&1" directs program to not display anything while executing.)
-yum install -y -q yum-utils device-mapper-persistent-data lvm2 > /dev/null 2>&1
-yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo > /dev/null 2>&1
-yum install -y -q docker-ce >/dev/null 2>&1
-or
-sudo yum check-update
-(Install Dependencies: yum-utils switch adds the yum-config-manager. Docker uses a device mapper storage driver, and the device-mapper-persistent-data and lvm2 packages) 
-sudo yum install -y yum-utils device-mapper-persistent-data lvm2
-(Add the Docker Repository to CentOS: To install the edge or test versions of Docker, you need to add the Docker CE stable repository to your system)
-sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-(Install Docker On CentOS Using Yum)
-sudo yum install docker
-(Manage Docker Service: Although Docker is install on CentOS ,however, the service is still not running so Start, Enable and check Docker services)
-sudo systemctl start docker
+# Install Docker CE
+yum install yum-utils device-mapper-persistent-data lvm2
+# Add Docker repository.
+yum-config-manager \
+  --add-repo \
+  https://download.docker.com/linux/centos/docker-ce.repo
+# Install Docker CE
+yum update && yum install docker-ce-18.06.2.ce
+# Create /etc/docker directory.
+mkdir /etc/docker
+# Configure the Docker daemon
+cat > /etc/docker/daemon.json <<EOF
+{
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m"
+  },
+  "storage-driver": "overlay2",
+  "storage-opts": [
+    "overlay2.override_kernel_check=true"
+  ]
+}
+EOF
+mkdir -p /etc/systemd/system/docker.service.d
+# Restart Docker
+systemctl daemon-reload
+systemctl restart docker
 systemctl enable docker
-sudo systemctl status docker
+systemctl status docker
 
 Step 2. Adding Kubernetes Packages for CentOS:
 (Kubernetes packages are not available from official CentOS 7 repositories. This step needs to be performed on the Master Node, and each Worker Node you plan on utilizing
@@ -73,22 +85,9 @@ gpgcheck=1
 repo_gpgcheck=1
 gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 EOF
-or 
-cat <<EOF | sudo tee /etc/yum.repos.d/kubernetes.repo
-[kubernetes]
-name=Kubernetes
-baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-\$basearch
-enabled=1
-gpgcheck=1
-repo_gpgcheck=1
-gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
-exclude=kubelet kubeadm kubectl
-EOF
 
 Step 3: Install kubelet, kubeadm, and kubectl
 (These 3 basic packages are required to be able to use Kubernetes. Install the following package(s) on each node:)
-yum install -y kubeadm-1.15.6-0.x86_64 kubelet-1.15.6-0.x86_64 kubectl-1.15.6-0.x86_64
-or
 sudo yum install -y kubelet kubeadm kubectl
 (Enable and Start kubelet service)
 systemctl enable kubelet
@@ -127,11 +126,6 @@ systemctl stop firewalld
 Step 6: Configuring a bridge network and Update Iptables Settings:
 (A Bridge Container Network Interface (CNI) plug-in enables all the Pods on a node to connect through virtual switch by assigning each pod an IP address on the network 
 and Set the net.bridge.bridge-nf-call-iptables to ‘1’ in sysctl config file to ensure that packets are properly processed by IP tables during filtering and port forwarding)
-cat >> /etc/sysctl.d/kubernetes.conf <<EOF
-net.bridge.bridge-nf-call-ip6tables = 1
-net.bridge.bridge-nf-call-iptables = 1
-EOF
-or
 cat <<EOF > /etc/sysctl.d/k8s.conf
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
