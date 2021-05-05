@@ -42,7 +42,7 @@ sudo yum install docker
 (Manage Docker Service: Although Docker is install on CentOS ,however, the service is still not running so Start, Enable and check Docker services)
 sudo systemctl start docker
 systemctl enable docker
-sudo systemctl status docker0
+sudo systemctl status docker
 
 Step 2. Adding Kubernetes Packages for CentOS:
 (Kubernetes packages are not available from official CentOS 7 repositories. This step needs to be performed on the Master Node, and each Worker Node you plan on utilizing
