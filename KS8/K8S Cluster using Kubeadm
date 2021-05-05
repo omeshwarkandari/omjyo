@@ -79,16 +79,10 @@ systemctl start kubelet
 
 Step 4: Set Hostname on Nodes and Hosts file:
 (To give a unique hostname to each of your nodes)
-sudo hostnamectl set-hostname master-node
+hostnamectl set-hostname ndoe-name
 or
-sudo hostnamectl set-hostname worker-node1
-or
-echo "ipaddress host-name" >> /etc/hosts
-
 (Make a host entry or DNS record to resolve the hostname for all nodes)
-sudo nano /etc/hosts
-(Private IP Address      host dns name master node)
-(Private IP Address      host dns name worker node)
+echo "ipaddress host-name" >> /etc/hosts
 
 Step 5: Disable Firewall:
 (The nodes, containers, and pods need to be able to communicate across the cluster to perform their functions. Firewalld is enabled in CentOS by default on the front-end.
