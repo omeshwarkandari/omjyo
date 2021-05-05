@@ -16,10 +16,27 @@ Prerequisites:
 Master: t2.medium (2 CPUs and 2GB Memory)
 Worker Nodes: t2.micro
 Ports:
-Master node:
-6443 32750 10250 4443 443 8080
-On Master node and Worker node:
-179 (Calico BGP network)
+# Control-Plane Node
+Protocol	Port Number	Description
+TCP	6443	Kubernetes API Server
+TCP	2379-2380	etcd server client API
+TCP	10250	Kubelet API
+TCP	10251	kube-scheduler
+TCP	10252	kube-controller-manager
+TCP	10255	Read-only Kubelet API
+# Worker node:
+Protocol	Port Number	Description
+TCP	10250	Kubelet API
+TCP	10255	Read-only Kubelet API
+TCP	30000-32767	NodePort Services
+# CNI ports on both control-plane and worker nodes (CNI specific ports are only required to be opened when that particular CNI plugin is used)
+Protocol	Port Number	Description
+TCP	179	Calico BGP network
+TCP	9099	Calico felix (health check)
+UDP	8285	Flannel
+UDP	8472	Flannel
+TCP	6781-6784	Weave Net
+UDP	6783-6784	Weave Net
 
 Perform all the commands as root user unless otherwise specified on Master Nodes and all the Worker Nodes.
 
