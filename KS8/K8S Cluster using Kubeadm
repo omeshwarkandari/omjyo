@@ -19,7 +19,7 @@ Ports:
 Master node:
 6443 32750 10250 4443 443 8080
 On Master node and Worker node:
-179
+179 (Calico BGP network)
 
 Perform all the commands as root user unless otherwise specified on Master Nodes and all the Worker Nodes.
 
@@ -82,6 +82,9 @@ Step 4: Set Hostname on Nodes and Hosts file:
 sudo hostnamectl set-hostname master-node
 or
 sudo hostnamectl set-hostname worker-node1
+or
+echo "ipaddress host-name" >> /etc/hosts
+
 (Make a host entry or DNS record to resolve the hostname for all nodes)
 sudo nano /etc/hosts
 (Private IP Address      host dns name master node)
