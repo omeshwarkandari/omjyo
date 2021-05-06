@@ -1,0 +1,39 @@
+$ kubectl get node
+$ kubectl describe nodes
+$ kubectl cluster-info
+$ kubectl api-versions
+
+
+# Verify RBAC enable for the cluster
+$ kubectl cluster-info dump | grep authorization-mode
+                            "--authorization-mode=Node,RBAC",
+$ kubectl get services kube-dns --namespace=kube-system
+
+# Namespace, Deployment and Services commands
+$ kubectl api-resources | grep deployment
+$ kubectl get pods
+$ kubectl get pods -o wide
+$ kubectl get pods -o wide --all-namespaces
+$ kubectl describe pods <podname>
+$ kubectl get services
+$ kubectl get services <servicename>
+$ kubectl describe services
+$ kubectl describe services <servicename>
+$ kubectl get namespaces
+$ kubectl get namespace <Namespace name>
+$ kubectl describe namespace <Namespace name>
+$ kubectl create namespace <Namespace name>
+$ kubectl delete namespace <Namespace name>
+$ kubectl config set-context --current --namespace=my-namespace  (To replace defualt namespace with a namespace of our choice)
+$ kubectl get pods --namespace=<Namespace name>
+e.g. $ kubectl get pods --namespace=kube-system
+
+# Pod/Service/Namespace Creation and Deletion:
+$ kubectl create –f abc.yml
+$ kubectl delete pods <podname>
+$ kubectl delete services <servicename>
+$ kubectl delete all -l <app=appname>
+$ kubectl get rs ( get replicas)
+$ kubectl get pods --show-labels
+
+
