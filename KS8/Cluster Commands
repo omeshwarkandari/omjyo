@@ -27,6 +27,7 @@ $ kubectl delete namespace <Namespace name>
 $ kubectl config set-context --current --namespace=my-namespace  (To replace defualt namespace with a namespace of our choice)
 $ kubectl get pods --namespace=<Namespace name>
 e.g. $ kubectl get pods --namespace=kube-system
+$ kubectl config view | grep namespace
 
 # Pod/Service/Namespace Creation and Deletion:
 $ kubectl create –f abc.yml
