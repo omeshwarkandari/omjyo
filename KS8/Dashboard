@@ -1,0 +1,86 @@
+Default Kubernetes Dashboard UI:
+
+Step 1: Deploy the Dashboard Service by creating pods:
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0/aio/deploy/recommended.yaml
+$ kubectl get pods --all-namespaces
+NAMESPACE              NAME                                         READY   STATUS    RESTARTS   AGE
+kube-system            calico-kube-controllers-76bf499b46-65fs2     1/1     Running   2          25h
+kube-system            calico-node-hxdzn                            1/1     Running   2          25h
+kube-system            calico-node-wz7px                            1/1     Running   2          25h
+kube-system            coredns-558bd4d5db-m6lxb                     1/1     Running   2          26h
+kube-system            coredns-558bd4d5db-sfpt5                     1/1     Running   2          26h
+kube-system            etcd-master-node                             1/1     Running   2          26h
+kube-system            kube-apiserver-master-node                   1/1     Running   2          26h
+kube-system            kube-controller-manager-master-node          1/1     Running   2          26h
+kube-system            kube-proxy-vn79t                             1/1     Running   2          26h
+kube-system            kube-proxy-wx8xq                             1/1     Running   2          25h
+kube-system            kube-scheduler-master-node                   1/1     Running   2          26h
+kubernetes-dashboard   dashboard-metrics-scraper-856586f554-vm8cg   1/1     Running   2          25h
+kubernetes-dashboard   kubernetes-dashboard-78c79f97b4-qtfbd        1/1     Running   2          25h
+
+Step 2: Create an Admin user , create Service Accunt Role and role binding;
+mkdir ~/dashboard && cd ~/dashboard
+nano dashboard-admin.yaml or vi dashboard-admin.yaml
+# Use below script:
+[
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin-user
+  namespace: kubernetes-dashboard
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-user
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: admin-user
+  namespace: kubernetes-dashboard
+  ]
+  kubectl apply -f dashboard-admin.yaml
+ # Since there was some problem in Dashboard geneartion so below steps are useful by recraeting clusterrolebinding
+ kubectl delete clusterrolebinding kubernetes-dashboard
+ kubectl create clusterrolebinding kubernetes-dashboard --clusterrole=cluster-admin --serviceaccount=kube-system:kubernetes-dashboard --user=clusterUser
+ 
+Step 3: UI Access Link/URL
+# Dashboad UI is accessible over Localhost using below URL based on the Toekn Authontication
+http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
+
+Step 4: UI Authentication
+# We are using Token Based Authentication
+
+Step 5: Generate Token
+(We need to create a SSH Tunnel between the localhost/Laptop or Desktop to access the Cluster. The SSH Tunnel is created by adding " -L localhost:8001:127.0.0.1:8001 "
+parameters in the normal ssh connect script e.g. we connect to a Kubeadm Cluster Master Node with "ssh -i "demokeypair.pem" centos@ec2-44-192-44-108.compute-1.amazonaws.com" 
+so adding above script will create a SSH Tunnel and once connected we need to run "kubectl proxy" which will create a proxy nettwork between Cluster and local system)
+$ ssh -i "demokeypair.pem" -L localhost:8001:127.0.0.1:8001 centos@ec2-44-192-44-108.compute-1.amazonaws.com
+$ sudo su - kubeadmin
+$ kubectl proxy
+# we can also access without a generic user kubeadmin but here we have created a generic user as well as configured required permission as cluster admin
+[
+omesh@DESKTOP-0MQTKM3:~$ ssh -i "demokeypair.pem" -L localhost:8001:127.0.0.1:8001 centos@ec2-44-192-44-108.compute-1.amazonaws.com
+Last login: Thu May  6 10:18:05 2021 from 49.37.161.197
+[centos@master-node ~]$ sudo su - kubeadmin
+Last login: Thu May  6 10:18:07 UTC 2021 on pts/0
+[kubeadmin@master-node ~]$ kubectl proxy
+Starting to serve on 127.0.0.1:8001
+]
+# Token is generated using " kubectl get secret -n kubernetes-dashboard $(kubectl get serviceaccount admin-user -n kubernetes-dashboard -o jsonpath= "{.secrets[0].name}") -o
+jsonpath="{.data.token}" | base64 --decode " (but through a new sesssion with Cluster Master Node because UI URL link is live only till the proxy connection is live)
+$ ssh -i "demokeypair.pem" centos@ec2-44-192-44-108.compute-1.amazonaws.com
+$ sudo su - kubeadmin
+$ cd dashboard
+$ kubectl get secret -n kubernetes-dashboard $(kubectl get serviceaccount admin-user -n kubernetes-dashboard -o jsonpath="{.secrets[0].name}") -o jsonpath="{.data.token}" | base64 --decode
+# Copy the Hash Token Key and enter on the propt "http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/"
+
+
+
+  
+  
+  
+  
