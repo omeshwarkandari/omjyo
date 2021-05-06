@@ -1,13 +1,21 @@
+$ kubectl cluster-info
+$ kubectl version
+$ kubectl api-resources (Provides  a detailed list)
+$ kubectl config view
 $ kubectl get node
 $ kubectl describe nodes
 $ kubectl cluster-info
 $ kubectl api-versions
-
-
 # Verify RBAC enable for the cluster
 $ kubectl cluster-info dump | grep authorization-mode
                             "--authorization-mode=Node,RBAC",
 $ kubectl get services kube-dns --namespace=kube-system
+$ kubectl logs <podname>
+$ kubectl logs --tail=10 <podname>
+$ kubectl logs -c <conatinername> <podname>
+(taint ensures that a node gets pod deployment e.g. by default Master Node is tainted in order to prevent the cluster from scheduling pods on the master)
+$ kubectl taint node <nodename> 
+$ kubectl get serviceaccounts
 
 # Namespace, Deployment and Services commands
 $ kubectl api-resources | grep deployment
@@ -24,6 +32,8 @@ $ kubectl get namespace <Namespace name>
 $ kubectl describe namespace <Namespace name>
 $ kubectl create namespace <Namespace name>
 $ kubectl delete namespace <Namespace name>
+$ kubectl edit namespace <Namespace name>
+$ kubectl top namespace <Namespace name>
 $ kubectl config set-context --current --namespace=my-namespace  (To replace defualt namespace with a namespace of our choice)
 $ kubectl get pods --namespace=<Namespace name>
 e.g. $ kubectl get pods --namespace=kube-system
@@ -36,5 +46,10 @@ $ kubectl delete services <servicename>
 $ kubectl delete all -l <app=appname>
 $ kubectl get rs ( get replicas)
 $ kubectl get pods --show-labels
+
+$ kubectl get secrets
+$ kubectl describe secrets
+$ kubectl create secrets
+$ kubectl delete  secrets <secret name>
 
 
