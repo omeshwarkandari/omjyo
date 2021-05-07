@@ -180,3 +180,30 @@ sudo kubectl get pods --all-namespaces
 
 #To Get component status
 kubectl get cs
+
+
+How to access Cluster from Local System/Laptop:
+Admin user access: 
+(Copy the administrator kubeconfig file from your control-plane node to your workstation lor laptop, admin.conf file gives the user superuser privileges over the cluste
+$ scp root@<control-plane-host>:/etc/kubernetes/admin.conf . kubectl --kubeconfig ./admin.conf get nodes
+Normal user access: 
+(It's recommended to generate an unique credential to which you grant privileges. Run kubeadm alpha kubeconfig user --client-name <CN> command. This command will print 
+out a KubeConfig file to STDOUT which you should save to a file and distribute to your user. After that, grant privileges by using kubectl create (cluster)rolebinding.)
+
+(Optional) Proxying API Server to localhost: Use kubectl proxyto connect to the API Server from outside the cluster.
+$ scp root@<control-plane-host>:/etc/kubernetes/admin.conf . kubectl --kubeconfig ./admin.conf proxy
+Now access the API Server locally at http://localhost:8001/api/v1
+
+Clean up:
+$ kubectl config delete-cluster
+Remove the node: First Drain and reset the state before removing the node
+$ kubectl drain <node name> --delete-local-data --force --ignore-daemonsets
+$ kubeadm reset
+# The reset process does not reset or clean up iptables rules or IPVS tables and if you wish to reset iptables, you must do so manually 
+$ iptables -F && iptables -t nat -F && iptables -t mangle -F && iptables -X
+$ ipvsadm -C    (To reset IPVS tables)
+$ kubectl delete node <node name>
+# Clean up the control plane:
+$ kubeadm reset
+
+
