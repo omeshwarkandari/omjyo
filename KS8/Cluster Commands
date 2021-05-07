@@ -41,6 +41,8 @@ $ kubectl config set-context --current --namespace=my-namespace  (To replace def
 $ kubectl get pods --namespace=<Namespace name>
 e.g. $ kubectl get pods --namespace=kube-system
 $ kubectl config view | grep namespace
+$ kubectl api-resources --namespaced=true (Resources in a namespace)
+$ kubectl api-resources --namespaced=false (Resources not in a namespace)
 
 # Pod/Service/Namespace Creation and Deletion:
 $ kubectl create –f abc.yml
