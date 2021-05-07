@@ -15,7 +15,10 @@ $ kubectl logs --tail=10 <podname>
 $ kubectl logs -c <conatinername> <podname>
 (taint ensures that a node gets pod deployment e.g. by default Master Node is tainted in order to prevent the cluster from scheduling pods on the master)
 $ kubectl taint node <nodename> 
+$ kubectl taint nodes --all node-role.kubernetes.io/master-
 $ kubectl get serviceaccounts
+$ kubeadm token list   (To gnerate the token for node join upto 24 hrs. which is default retention period))
+$ kubeadm token create ( To gnerate the token for node join after 24 hrs.)
 
 # Namespace, Deployment and Services commands
 $ kubectl api-resources | grep deployment
