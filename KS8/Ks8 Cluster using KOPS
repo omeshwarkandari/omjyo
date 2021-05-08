@@ -1,38 +1,45 @@
 Setup Kubernetes (K8s) Cluster on AWS
 
 Create Ubuntu EC2 instance and set-up pre-requites:
-1. AWS CLI
+1. AWS CLI and Configure
 2. KOPS Client
 3. KUBECTL Client
 4. IAM Access to craete Cluster (Either Create a User with permission or allocate Role to EC2 Instance)
 5. Create  Hosted Zone ( Public/Private) in R53
 6. Create an S3 Bucket to store Cluster config and provision
-7. Export AWS Crentials, S3 and AWS Region
-8. Create Cluster
-9. Explore Advance Features
+7. Genrate AWS Keys
+8. Prepare Local Ennvironment: Export S3, AWS Region and Cluster Name
+9. Create Cluster
+10. Explore Advance Features
 10. Clean-up
 
-1. AWS Configure:
+
+1. AWS CLI and AWS Configure:
+$ aws --version
+aws-cli/2.2.3 Python/3.8.8 Linux/4.14.231-173.360.amzn2.x86_64 exe/x86_64.amzn.2 prompt/off
+
+# In case version 1 then upgrade to stable version 2 
+$ curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+$ unzip awscliv2.zip
+$ sudo ./aws/install
+
 # Verify the profile availability 
 $ echo $AWS_PROFILE ( It will show the default profile and if no/blank ouput then see the aws credentials section)
 $ cat ~/.aws/credentials ( It will show the available cedentials and if its blank then we need to generate a profile using aws configure setup)
 $ aws configure (Setup the profile as this is needed in Step 4 fro IAM User/Role creation)
-Note: Install AWSC CLI if not available.
-(curl https://s3.amazonaws.com/aws-cli/awscli-bundle.zip -o awscli-bundle.zip
-apt install unzip python
-unzip awscli-bundle.zip
-#sudo apt-get install unzip - if you dont have unzip in your system
-./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws)
+
  
 2. Install kops on ubuntu instance:
 curl -LO https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
 chmod +x kops-linux-amd64
 sudo mv kops-linux-amd64 /usr/local/bin/kops
 
+
 3. Install kubectl
 curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
 chmod +x ./kubectl
 sudo mv ./kubectl /usr/local/bin/kubectlCreate an IAM user/role with Route53, EC2, IAM and S3 full access
+
 
 4. IAM Access 
 (In order to build clusters within AWS we'll create a dedicated IAM user for kops. This user requires API credentials in order to use kops. Create the user, 
@@ -46,7 +53,7 @@ IAMFullAccess
 AmazonVPCFullAccess
 
 # Create Group "kops" with required permissions
-$ aws iam create-group --group-name kops (Ity will create a GroupName: kops in jason template)
+$ aws iam create-group --group-name kops (It will create a Json template for the group "kops")
 # Now provide this Group the required access:
 $ aws iam attach-group-policy --policy-arn arn:aws:iam::aws:policy/AmazonEC2FullAccess --group-name kops
 $ aws iam attach-group-policy --policy-arn arn:aws:iam::aws:policy/AmazonRoute53FullAccess --group-name kops
@@ -54,32 +61,163 @@ $ aws iam attach-group-policy --policy-arn arn:aws:iam::aws:policy/AmazonS3FullA
 $ aws iam attach-group-policy --policy-arn arn:aws:iam::aws:policy/IAMFullAccess --group-name kops
 $ aws iam attach-group-policy --policy-arn arn:aws:iam::aws:policy/AmazonVPCFullAccess --group-name kops
 
-
-
-
-
-
-
-
-
+# Create a user "kops" and add this to group as well as generate aws credentials for rest of the process.
+$ aws iam create-user --user-name kops (It will create a Json template for the user "kops")
+$ aws iam add-user-to-group --user-name kops --group-name kops
+$ aws iam create-access-key --user-name kops
+e.g. below and take a note of these credentials because now we need to setup aws config for this user "kops".
+{
+    "AccessKey": {
+        "UserName": "kops",
+        "Status": "Active",
+        "CreateDate": "2021-05-08T04:50:18Z",
+        "SecretAccessKey": "A99GdRxDPd6U62PRKW4FDW8c13jtn1zOMJHVKGl8",
+        "AccessKeyId": "AKIAZGKOKOINXLPTISPC"
+    }
+}
+# configure the aws client to use your new IAM user
+$ aws configure
+$ aws iam list-users (This will show all the users profile inclsuing current user i.e. "mukki" as well as new user "kops")
+{
+    "Users": [
+        {
+            "UserName": "kops",
+            "Path": "/",
+            "CreateDate": "2021-05-08T04:48:39Z",
+            "UserId": "AIDAZGKOKOIN2TFKIR6YO",
+            "Arn": "arn:aws:iam::632061325851:user/kops"
+        },
+        {
+            "UserName": "mukki",
+            "PasswordLastUsed": "2021-05-08T03:35:18Z",
+            "CreateDate": "2021-03-07T05:05:52Z",
+            "UserId": "AIDAZGKOKOIN7L4WDG5CL",
+            "Path": "/",
+            "Arn": "arn:aws:iam::632061325851:user/mukki"
+        }
+    ]
+}
+# Set-up aws config profile for "kops" by exporting the access credential.
+$ export AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id)
+$ export AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key)
+$ cat ~/.aws/credentials ( It should show the "kops" credentials by replacing the user "mukki" credentials as default)
+[default]
+aws_access_key_id = AKIAZGKOKOINXLPTISPC
+aws_secret_access_key = A99GdRxDPd6U62PRKW4FDW8c13jtn1zOMJHVKGl8
 
 
 5. Create a Route53 private hosted zone (you can create Public hosted zone if you have a domain)
+e.g. hosted zone is "demo.com" in the private dns space.
+# Lets use the syntax (aws route53 create-hosted-zone --name example.com --caller-reference 2014-04-01-18:47 --hosted-zone-config Comment="command-line version")
+$ aws route53 create-hosted-zone --name demo.com --caller-reference 2014-04-01-18:47 --hosted-zone-config Comment="command-line version"
+# Hosted Zone "demo.com" in private dns created succesffully
+{
+    "Location": "https://route53.amazonaws.com/2013-04-01/hostedzone/Z0140974GMNFQA0E5GVT",
+    "HostedZone": {
+        "Id": "/hostedzone/Z0140974GMNFQA0E5GVT",
+        "Name": "demo.com.",
+        "CallerReference": "2014-04-01-18:47",
+        "Config": {
+            "Comment": "command-line version",
+            "PrivateZone": false
+        },
+        "ResourceRecordSetCount": 2
+    },
+    "ChangeInfo": {
+        "Id": "/change/C00816061HVYQMNR09X7O",
+        "Status": "PENDING",
+        "SubmittedAt": "2021-05-08T05:34:58.025000+00:00"
+    },
+    "DelegationSet": {
+        "NameServers": [
+            "ns-1877.awsdns-42.co.uk",
+            "ns-1376.awsdns-44.org",
+            "ns-341.awsdns-42.com",
+            "ns-713.awsdns-25.net"
+        ]
+    }
+}
 
-create an S3 bucket
-aws s3 mb s3://dev.k8s.valaxy.in
+# Test the hosted zone
+$ dig demo.com
+( ; <<>> DiG 9.11.4-P2-RedHat-9.11.4-26.P2.amzn2.4 <<>> demo.com
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 18646
+;; flags: qr rd ra; QUERY: 1, ANSWER: 4, AUTHORITY: 0, ADDITIONAL: 1
 
-Expose environment variable:
-export KOPS_STATE_STORE=s3://dev.k8s.valaxy.in
-Create sshkeys before creating cluster
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;demo.com.                      IN      A
 
-ssh-keygen
-Create kubernetes cluster definitions on S3 bucket
+;; ANSWER SECTION:
+demo.com.               300     IN      A       151.101.194.165
+demo.com.               300     IN      A       151.101.2.165
+demo.com.               300     IN      A       151.101.66.165
+demo.com.               300     IN      A       151.101.130.165 
+;; Query time: 1 msec
+;; SERVER: 172.31.0.2#53(172.31.0.2)
+;; WHEN: Sat May 08 05:35:37 UTC 2021
+;; MSG SIZE  rcvd: 101)
 
-kops create cluster --cloud=aws --zones=ap-southeast-1b --name=dev.k8s.valaxy.in --dns-zone=valaxy.in --dns private
-Create kubernetes cluser
+or
 
-kops update cluster dev.k8s.valaxy.in --yes
+$ nslookup demo.com
+( Server:         172.31.0.2
+Address:        172.31.0.2#53
+Non-authoritative answer:
+Name:   demo.com
+Address: 151.101.130.165
+Name:   demo.com
+Address: 151.101.194.165
+Name:   demo.com
+Address: 151.101.2.165
+Name:   demo.com
+Address: 151.101.66.165)
+Note: Sometime non-auth answer may give error so its ine for demo cluster
+
+
+6. create an S3 bucket
+$ aws s3 ls  (check whether any exisitng bucket for this profile and it should be blank)
+$ aws s3 mb s3://test.demo.com (Create a bucket new.demo.com using mb=make bcket)
+make_bucket: test.demo.com
+# aws s3 ls
+2021-05-08 05:46:08 test.demo.com
+
+7. Create sshkeys before creating cluster
+$ ssh-keygen
+
+8. Expose environment variable: e.g. cluster name is "cluster.demo.com" (Note: not proper local envionment creates multiple issue specially IAM Access error)
+$ export AWS_ACCESS_KEY_ID=$AKIAZGKOKOINXLPTISPC
+$ export AWS_SECRET_ACCESS_KEY=$A99GdRxDPd6U62PRKW4FDW8c13jtn1zOMJHVKGl8
+$ export KOPS_STATE_STORE=s3://test.demo.com
+$ export ZONES=us-east-1
+$ export NAME=cluster.demo.com
+
+9. Create kubernetes cluser
+$ kops create cluster --name= cluster.demo.com \
+--zones=us-east-1a \
+--node-count=2 \
+--dns-zone=demo.com \
+--dns private
+
+(This will create Cluster basic set-up with output to configure required set-up.
+Must specify --yes to apply changes
+Cluster configuration has been created.
+Suggestions:
+ * list clusters with: kops get cluster
+ * edit this cluster with: kops edit cluster cluster.demo.com 
+ * edit your node instance group: kops edit ig --name=cluster.demo.com nodes-us-east-1a
+ * edit your master instance group: kops edit ig --name=cluster.demo.com master-us-east-1a
+Finally configure your cluster with: kops update cluster --name cluster.demo.com --yes --admin)
+$ kops edit cluster <cluster-name>                                                    (To edit cluster info including name)
+$ kops edit ig --name=<cluster-name> nodes-us-east-1a --state=<s3bucket-name>         (To edit the worker node configuration rather than default)
+$ kops edit ig --name=<cluster-name> master-us-east-1a --state=<s3bucket-name>        (To edit the master node configuration rather than default)
+
+
+
+
 Validate your cluster
 
 kops validate cluster
