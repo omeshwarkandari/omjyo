@@ -113,6 +113,7 @@ e.g. hosted zone is "demo.com" in the private dns space.
 # Create using R53 Console
 # Under Test: CLI (aws route53 create-hosted-zone --name example.com --caller-reference 2014-04-01-18:47 --hosted-zone-config Comment="command-line version")
 $ aws route53 create-hosted-zone --name demo.com --caller-reference 2021-05-09-20:10 --hosted-zone-config Comment="command-line version"
+$ aws route53 associate-vpc-with-hosted-zone --hosted-zone-id abc --vpc defaultvpc
 # Hosted Zone "demo.com" in private dns created succesffully but issue in cluster creation.
 {
     "Location": "https://route53.amazonaws.com/2013-04-01/hostedzone/Z0140974GMNFQA0E5GVT",
