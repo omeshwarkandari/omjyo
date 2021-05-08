@@ -26,6 +26,10 @@ $ sudo ./aws/install
 # Verify the profile availability 
 $ echo $AWS_PROFILE ( It will show the default profile and if no/blank ouput then see the aws credentials section)
 $ cat ~/.aws/credentials ( It will show the available cedentials and if its blank then we need to generate a profile using aws configure setup)
+e.g 
+[default]
+aws_access_key_id = AKIAZGKOKOINXMIOOGDD
+aws_secret_access_key = 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
 $ aws configure (Setup the profile as this is needed in Step 4 fro IAM User/Role creation)
 
  
