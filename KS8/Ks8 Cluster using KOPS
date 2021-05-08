@@ -18,7 +18,7 @@ Create Ubuntu EC2 instance and set-up pre-requites:
 $ aws --version
 aws-cli/2.2.3 Python/3.8.8 Linux/4.14.231-173.360.amzn2.x86_64 exe/x86_64.amzn.2 prompt/off
 
-# In case version 1 then upgrade to stable version 2 
+# In case version 1 then upgrade to the stable version 2 
 $ curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 $ unzip awscliv2.zip
 $ sudo ./aws/install
@@ -46,11 +46,7 @@ sudo mv ./kubectl /usr/local/bin/kubectlCreate an IAM user/role with Route53, EC
 and credentials, using the AWS console)
 # In this example we will create a User e.g. kops and then create a group e.g. "kops" which will have required permissions and then add User to this Group. 
 # IAM Role Permission required:
-AmazonEC2FullAccess
-AmazonRoute53FullAccess
-AmazonS3FullAccess
-IAMFullAccess
-AmazonVPCFullAccess
+"AmazonEC2FullAccess"    "AmazonRoute53FullAccess"    "AmazonS3FullAccess"   "IAMFullAccess"   "AmazonVPCFullAccess"
 
 # Create Group "kops" with required permissions
 $ aws iam create-group --group-name kops (It will create a Json template for the group "kops")
@@ -75,7 +71,8 @@ e.g. below and take a note of these credentials because now we need to setup aws
         "AccessKeyId": "AKIAZGKOKOINXLPTISPC"
     }
 }
-# configure the aws client to use your new IAM user
+
+# configure the aws client to use your new IAM user:
 $ aws configure
 $ aws iam list-users (This will show all the users profile inclsuing current user i.e. "mukki" as well as new user "kops")
 {
@@ -97,6 +94,7 @@ $ aws iam list-users (This will show all the users profile inclsuing current use
         }
     ]
 }
+
 # Set-up aws config profile for "kops" by exporting the access credential.
 $ export AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id)
 $ export AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key)
@@ -109,6 +107,7 @@ aws_secret_access_key = A99GdRxDPd6U62PRKW4FDW8c13jtn1zOMJHVKGl8
 5. Create a Route53 private hosted zone (you can create Public hosted zone if you have a domain)
 e.g. hosted zone is "demo.com" in the private dns space.
 # Lets use the syntax (aws route53 create-hosted-zone --name example.com --caller-reference 2014-04-01-18:47 --hosted-zone-config Comment="command-line version")
+
 $ aws route53 create-hosted-zone --name demo.com --caller-reference 2014-04-01-18:47 --hosted-zone-config Comment="command-line version"
 # Hosted Zone "demo.com" in private dns created succesffully
 {
@@ -140,17 +139,15 @@ $ aws route53 create-hosted-zone --name demo.com --caller-reference 2014-04-01-1
 
 # Test the hosted zone
 $ dig demo.com
-( ; <<>> DiG 9.11.4-P2-RedHat-9.11.4-26.P2.amzn2.4 <<>> demo.com
+{ ; <<>> DiG 9.11.4-P2-RedHat-9.11.4-26.P2.amzn2.4 <<>> demo.com
 ;; global options: +cmd
 ;; Got answer:
 ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 18646
 ;; flags: qr rd ra; QUERY: 1, ANSWER: 4, AUTHORITY: 0, ADDITIONAL: 1
-
 ;; OPT PSEUDOSECTION:
 ; EDNS: version: 0, flags:; udp: 4096
 ;; QUESTION SECTION:
 ;demo.com.                      IN      A
-
 ;; ANSWER SECTION:
 demo.com.               300     IN      A       151.101.194.165
 demo.com.               300     IN      A       151.101.2.165
@@ -159,12 +156,12 @@ demo.com.               300     IN      A       151.101.130.165
 ;; Query time: 1 msec
 ;; SERVER: 172.31.0.2#53(172.31.0.2)
 ;; WHEN: Sat May 08 05:35:37 UTC 2021
-;; MSG SIZE  rcvd: 101)
+;; MSG SIZE  rcvd: 101 }
 
 or
 
 $ nslookup demo.com
-( Server:         172.31.0.2
+{ Server:         172.31.0.2
 Address:        172.31.0.2#53
 Non-authoritative answer:
 Name:   demo.com
@@ -174,7 +171,7 @@ Address: 151.101.194.165
 Name:   demo.com
 Address: 151.101.2.165
 Name:   demo.com
-Address: 151.101.66.165)
+Address: 151.101.66.165 }
 Note: Sometime non-auth answer may give error so its ine for demo cluster
 
 
@@ -195,6 +192,7 @@ $ export KOPS_STATE_STORE=s3://test.demo.com
 $ export ZONES=us-east-1
 $ export NAME=cluster.demo.com
 
+
 9. Create kubernetes cluser
 $ kops create cluster --name= cluster.demo.com \
 --zones=us-east-1a \
@@ -202,26 +200,24 @@ $ kops create cluster --name= cluster.demo.com \
 --dns-zone=demo.com \
 --dns private
 
-(This will create Cluster basic set-up with output to configure required set-up.
-Must specify --yes to apply changes
+(This will create Cluster basic set-up with output to configure required set-up as belwo)
+
+{ Must specify --yes to apply changes
 Cluster configuration has been created.
 Suggestions:
  * list clusters with: kops get cluster
  * edit this cluster with: kops edit cluster cluster.demo.com 
  * edit your node instance group: kops edit ig --name=cluster.demo.com nodes-us-east-1a
  * edit your master instance group: kops edit ig --name=cluster.demo.com master-us-east-1a
-Finally configure your cluster with: kops update cluster --name cluster.demo.com --yes --admin)
+Finally configure your cluster with: kops update cluster --name cluster.demo.com --yes --admin }
+
 $ kops edit cluster <cluster-name>                                                    (To edit cluster info including name)
 $ kops edit ig --name=<cluster-name> nodes-us-east-1a --state=<s3bucket-name>         (To edit the worker node configuration rather than default)
 $ kops edit ig --name=<cluster-name> master-us-east-1a --state=<s3bucket-name>        (To edit the master node configuration rather than default)
+$ kops update cluster --name <cluster-name> --yes --admin
 
-
-
-
-Validate your cluster
-
-kops validate cluster
-To list nodes
+# Validate your cluster
+$ kops validate cluster
 
 kubectl get nodes 
 Deploying Nginx container on Kubernetes
