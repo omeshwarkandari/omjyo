@@ -28,8 +28,8 @@ $ echo $AWS_PROFILE ( It will show the default profile and if no/blank ouput the
 $ cat ~/.aws/credentials ( It will show the available cedentials and if its blank then we need to generate a profile using aws configure setup)
 e.g 
 [default]
-aws_access_key_id = AKIAZGKOKOINXMIOOGDD
-aws_secret_access_key = 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
+aws_access_key_id = 
+aws_secret_access_key = 
 $ aws configure (Setup the profile as this is needed in Step 4 fro IAM User/Role creation)
 
  
@@ -65,48 +65,15 @@ $ aws iam attach-group-policy --policy-arn arn:aws:iam::aws:policy/AmazonVPCFull
 $ aws iam create-user --user-name kops (It will create a Json template for the user "kops")
 $ aws iam add-user-to-group --user-name kops --group-name kops
 $ aws iam create-access-key --user-name kops
-e.g. below and take a note of these credentials because now we need to setup aws config for this user "kops".
-{
-    "AccessKey": {
-        "UserName": "kops",
-        "Status": "Active",
-        "CreateDate": "2021-05-08T04:50:18Z",
-        "SecretAccessKey": "A99GdRxDPd6U62PRKW4FDW8c13jtn1zOMJHVKGl8",
-        "AccessKeyId": "AKIAZGKOKOINXLPTISPC"
-    }
-}
 
 # configure the aws client to use your new IAM user:
 $ aws configure
 $ aws iam list-users (This will show all the users profile inclsuing current user i.e. "mukki" as well as new user "kops")
-{
-    "Users": [
-        {
-            "UserName": "kops",
-            "Path": "/",
-            "CreateDate": "2021-05-08T04:48:39Z",
-            "UserId": "AIDAZGKOKOIN2TFKIR6YO",
-            "Arn": "arn:aws:iam::632061325851:user/kops"
-        },
-        {
-            "UserName": "mukki",
-            "PasswordLastUsed": "2021-05-08T03:35:18Z",
-            "CreateDate": "2021-03-07T05:05:52Z",
-            "UserId": "AIDAZGKOKOIN7L4WDG5CL",
-            "Path": "/",
-            "Arn": "arn:aws:iam::632061325851:user/mukki"
-        }
-    ]
-}
 
 # Set-up aws config profile for "kops" by exporting the access credential.
 $ export AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id)
 $ export AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key)
 $ cat ~/.aws/credentials ( It should show the "kops" credentials by replacing the user "mukki" credentials as default)
-[default]
-aws_access_key_id = AKIAZGKOKOINXLPTISPC
-aws_secret_access_key = A99GdRxDPd6U62PRKW4FDW8c13jtn1zOMJHVKGl8
-
 
 5. Create a Route53 private hosted zone (you can create Public hosted zone if you have a domain)
 e.g. hosted zone is "demo.com" in the private dns space.
@@ -191,9 +158,9 @@ make_bucket: test.demo.com
 $ ssh-keygen
 
 8. Expose environment variable: e.g. cluster name is "cluster.demo.com" (Note: not proper local envionment creates multiple issue specially IAM Access error)
-$ export AWS_ACCESS_KEY_ID=$AKIAZGKOKOINXLPTISPC
-$ export AWS_SECRET_ACCESS_KEY=$A99GdRxDPd6U62PRKW4FDW8c13jtn1zOMJHVKGl8
-$ export KOPS_STATE_STORE=s3://test.demo.com
+$ export AWS_ACCESS_KEY_ID=$
+$ export AWS_SECRET_ACCESS_KEY=$
+$ export KOPS_STATE_STORE=
 $ export ZONES=us-east-1
 $ export NAME=cluster.demo.com
 
