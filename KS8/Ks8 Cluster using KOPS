@@ -2,11 +2,11 @@ Setup Kubernetes (K8s) Cluster on AWS
 Create Ubuntu EC2 instance
 
 install AWSCLI
- curl https://s3.amazonaws.com/aws-cli/awscli-bundle.zip -o awscli-bundle.zip
- apt install unzip python
- unzip awscli-bundle.zip
- #sudo apt-get install unzip - if you dont have unzip in your system
- ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
+curl https://s3.amazonaws.com/aws-cli/awscli-bundle.zip -o awscli-bundle.zip
+apt install unzip python
+unzip awscli-bundle.zip
+#sudo apt-get install unzip - if you dont have unzip in your system
+./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
  
 Install kops on ubuntu instance:
 curl -LO https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
@@ -16,11 +16,9 @@ sudo mv kops-linux-amd64 /usr/local/bin/kops
 Install kubectl
 curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
 chmod +x ./kubectl
-sudo mv ./kubectl /usr/local/bin/kubectl
-Create an IAM user/role with Route53, EC2, IAM and S3 full access
+sudo mv ./kubectl /usr/local/bin/kubectlCreate an IAM user/role with Route53, EC2, IAM and S3 full access
 
 Attach IAM role to ubuntu server
-
 Note: If you create IAM user with programmatic access then provide Access keys.
 aws configure
  
@@ -42,20 +40,20 @@ Create kubernetes cluser
 kops update cluster dev.k8s.valaxy.in --yes
 Validate your cluster
 
- kops validate cluster
+kops validate cluster
 To list nodes
 
-  kubectl get nodes 
+kubectl get nodes 
 Deploying Nginx container on Kubernetes
 Deploying Nginx Container
 
-  kubectl run sample-nginx --image=nginx --replicas=2 --port=80
-  kubectl get pods
-  kubectl get deployments
+kubectl run sample-nginx --image=nginx --replicas=2 --port=80
+kubectl get pods
+kubectl get deployments
 Expose the deployment as service. This will create an ELB in front of those 2 containers and allow us to publicly access them:
 
- kubectl expose deployment sample-nginx --port=80 --type=LoadBalancer
- kubectl get services -o wide
+kubectl expose deployment sample-nginx --port=80 --type=LoadBalancer
+kubectl get services -o wide
 To delete cluster
 
- kops delete cluster dev.k8s.valaxy.in --yes
+kops delete cluster dev.k8s.valaxy.in --yes
