@@ -42,7 +42,7 @@ sudo mv kops-linux-amd64 /usr/local/bin/kops
 3. Install kubectl
 curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
 chmod +x ./kubectl
-sudo mv ./kubectl /usr/local/bin/kubectlCreate an IAM user/role with Route53, EC2, IAM and S3 full access
+sudo mv ./kubectl /usr/local/bin/kubectl
 
 
 4. IAM Access 
