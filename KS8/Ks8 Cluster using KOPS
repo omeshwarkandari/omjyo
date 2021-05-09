@@ -150,4 +150,3 @@ kubectl expose deployment sample-nginx --port=80 --type=LoadBalancer
 kubectl get services -o wide
 To delete cluster
 
-kops delete cluster dev.k8s.valaxy.in --yes
