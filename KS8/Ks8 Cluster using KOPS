@@ -79,8 +79,6 @@ $ aws configure
 $ aws iam list-users (This will show all the users profile inclsuing current user i.e. "mukki" as well as new user "kops")
 
 # Set-up aws config profile for "kops" by exporting the access credential.
-$ export AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id)
-$ export AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key)
 $ cat ~/.aws/credentials ( It should show the "kops" credentials by replacing the user "mukki" credentials as default)
 
 5. Create a Route53 private hosted zone (you can create Public hosted zone if you have a domain)
