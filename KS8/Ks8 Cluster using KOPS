@@ -16,12 +16,20 @@ Create Ubuntu EC2 instance and set-up pre-requites:
 
 1. AWS CLI and AWS Configure:
 $ aws --version
-aws-cli/2.2.3 Python/3.8.8 Linux/4.14.231-173.360.amzn2.x86_64 exe/x86_64.amzn.2 prompt/off
-
-# In case version 1 then upgrade to the stable version 2 
-$ curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+(version1 - aws-cli/1.18.147 Python/2.7.18 Linux/4.14.231-173.361.amzn2.x86_64 botocore/1.18.6  or  version2 - aws-cli/2.2.3 Python/3.8.8 Linux/4.14.231-173.360.amzn2...)
+# In case version 1 then upgrade to the stable version 2 by downloading latest or a specfic version e.g. 2.0.30
+$ curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" 
+or 
+$ curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.0.30.zip" -o "awscliv2.zip"
 $ unzip awscliv2.zip
-$ sudo ./aws/install
+$ which aws (which command helps in finding symlink and the path to use Install-dir)
+/usr/bin/aws 
+$ ls -l /usr/bin/aws  (ls command to find the directory that your symlink points to)
+lrwxrwxrwx 1 root root 31 May  9 05:14 /usr/bin/aws -> /usr/aws-cli/v2/current/bin/aws
+$ sudo ./aws/install --bin-dir /usr/bin --install-dir /usr/aws-cli --update (symlink and installer info constructs the install command with the --update paramete)
+$ aws --version
+aws-cli/2.0.30 Python/3.7.3 Linux/4.14.231-173.361.amzn2.x86_64 botocore/2.0.0dev34
+
 
 # Verify the profile availability 
 $ echo $AWS_PROFILE ( It will show the default profile and if no/blank ouput then see the aws credentials section)
