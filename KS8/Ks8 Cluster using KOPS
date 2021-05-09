@@ -88,77 +88,17 @@ e.g. hosted zone is "demo.com" in the private dns space.
 $ aws route53 create-hosted-zone --name demo.com --caller-reference 2021-05-09-20:10 --hosted-zone-config Comment="command-line version"
 $ aws route53 associate-vpc-with-hosted-zone --hosted-zone-id abc --vpc defaultvpc
 # Hosted Zone "demo.com" in private dns created succesffully but issue in cluster creation.
-{
-    "Location": "https://route53.amazonaws.com/2013-04-01/hostedzone/Z0140974GMNFQA0E5GVT",
-    "HostedZone": {
-        "Id": "/hostedzone/Z0140974GMNFQA0E5GVT",
-        "Name": "demo.com.",
-        "CallerReference": "2014-04-01-18:47",
-        "Config": {
-            "Comment": "command-line version",
-            "PrivateZone": false
-        },
-        "ResourceRecordSetCount": 2
-    },
-    "ChangeInfo": {
-        "Id": "/change/C00816061HVYQMNR09X7O",
-        "Status": "PENDING",
-        "SubmittedAt": "2021-05-08T05:34:58.025000+00:00"
-    },
-    "DelegationSet": {
-        "NameServers": [
-            "ns-1877.awsdns-42.co.uk",
-            "ns-1376.awsdns-44.org",
-            "ns-341.awsdns-42.com",
-            "ns-713.awsdns-25.net"
-        ]
-    }
-}
-
 # Test the hosted zone
 $ dig demo.com
-{ ; <<>> DiG 9.11.4-P2-RedHat-9.11.4-26.P2.amzn2.4 <<>> demo.com
-;; global options: +cmd
-;; Got answer:
-;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 18646
-;; flags: qr rd ra; QUERY: 1, ANSWER: 4, AUTHORITY: 0, ADDITIONAL: 1
-;; OPT PSEUDOSECTION:
-; EDNS: version: 0, flags:; udp: 4096
-;; QUESTION SECTION:
-;demo.com.                      IN      A
-;; ANSWER SECTION:
-demo.com.               300     IN      A       151.101.194.165
-demo.com.               300     IN      A       151.101.2.165
-demo.com.               300     IN      A       151.101.66.165
-demo.com.               300     IN      A       151.101.130.165 
-;; Query time: 1 msec
-;; SERVER: 172.31.0.2#53(172.31.0.2)
-;; WHEN: Sat May 08 05:35:37 UTC 2021
-;; MSG SIZE  rcvd: 101 }
-
 or
-
 $ nslookup demo.com
-{ Server:         172.31.0.2
-Address:        172.31.0.2#53
-Non-authoritative answer:
-Name:   demo.com
-Address: 151.101.130.165
-Name:   demo.com
-Address: 151.101.194.165
-Name:   demo.com
-Address: 151.101.2.165
-Name:   demo.com
-Address: 151.101.66.165 }
-Note: Sometime non-auth answer may give error so its ine for demo cluster
 
 
 6. create an S3 bucket
-$ aws s3 ls  (check whether any exisitng bucket for this profile and it should be blank)
-$ aws s3 mb s3://test.demo.com (Create a bucket new.demo.com using mb=make bcket)
-make_bucket: test.demo.com
+$ aws s3 ls   (check whether any exisitng bucket for this profile and it should be blank)
+$ aws s3 mb s3://  (Create a bucket new.demo.com using mb=make bcket)
 # aws s3 ls
-2021-05-08 05:46:08 test.demo.com
+
 
 7. Create sshkeys before creating cluster
 $ ssh-keygen
@@ -168,11 +108,11 @@ $ export AWS_ACCESS_KEY_ID=$
 $ export AWS_SECRET_ACCESS_KEY=$
 $ export KOPS_STATE_STORE=
 $ export ZONES=us-east-1
-$ export NAME=cluster.demo.com
+$ export NAME=clustername
 
 
 9. Create kubernetes cluser
-$ kops create cluster --name= cluster.demo.com \
+$ kops create cluster --name= clustername \
 --zones=us-east-1a \
 --node-count=2 \
 --dns-zone=demo.com \
