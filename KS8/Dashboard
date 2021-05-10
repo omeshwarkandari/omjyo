@@ -89,11 +89,15 @@ $ mkdir ~/dashboard && cd ~/dashboard
 $  kubectl apply -f dashboard-admin.yaml
 ubuntu@ip-172-20-40-166:~/dashboard$ kubectl get pods --all-namespaces  will deisplay the Dashboard pods as well.
 # Now we need to generate the token and then connect using Secure Tunnel to run proxy and connect the Dashboard UI
-e.g
+
+Create Tunnel:
 " omesh@DESKTOP-0MQTKM3:~$ ssh -i "kubernetes.simple.hello.com-5f:5a:5a:cb:01:70:0f:d3:89:32:8a:4b:fb:e2:00:f8.pem" -L localhost:8001:127.0.0.1:8001 ubuntu@ec2-54-146-178-90.compute-1.amazonaws.com "
 # We are connected to Cluster and run Kubectl Proxy. Here ubuntu@ip-172-20-40-166 is basically ubuntu@api.simple.hello.com
 ubuntu@ip-172-20-40-166:~$ kubectl proxy
 Starting to serve on 127.0.0.1:8001
+
+Create Token:
+$ kubectl get secret -n kubernetes-dashboard $(kubectl get serviceaccount admin-user -n kubernetes-dashboard -o jsonpath="{.secrets[0].name}") -o jsonpath="{.data.token}" | base64 --decode
   
   
   
