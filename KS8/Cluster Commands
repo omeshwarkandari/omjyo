@@ -46,6 +46,11 @@ e.g. $ kubectl get pods --namespace=kube-system
 $ kubectl config view | grep namespace
 $ kubectl api-resources --namespaced=true (Resources in a namespace)
 $ kubectl api-resources --namespaced=false (Resources not in a namespace)
+$ kubectl get deployment
+$ kubectl get deployment <deployment name>
+$ kubectl delete deployment <deployment name>
+$ kubectl describe deployment <deployment name>
+
 
 # Pod/Service/Namespace Creation and Deletion:
 $ kubectl create –f abc.yml
