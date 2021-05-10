@@ -50,7 +50,8 @@ $ kubectl get deployment
 $ kubectl get deployment <deployment name>
 $ kubectl delete deployment <deployment name>
 $ kubectl describe deployment <deployment name>
-
+$ kubectl get deploy -A
+$ kubectl delete deploy deploymentname -n namespacename
 
 # Pod/Service/Namespace Creation and Deletion:
 $ kubectl create –f abc.yml
