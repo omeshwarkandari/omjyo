@@ -9,6 +9,9 @@ $ kubectl api-versions
 # Verify RBAC enable for the cluster
 $ kubectl cluster-info dump | grep authorization-mode
                             "--authorization-mode=Node,RBAC",
+$ kubectl auth can-i create deployments --namespace prod (Ouput may be Yes or No depending on the RBAC access for the user runing the command)
+$ kubectl auth can-i create deployments --namespace dev  (Ouput may be Yes or No depending on the RBAC access for the user runing the command)
+$ kubectl auth can-i create deployments --namespace dev
 $ kubectl get services kube-dns --namespace=kube-system
 $ kubectl logs <podname>
 $ kubectl logs --tail=10 <podname>
