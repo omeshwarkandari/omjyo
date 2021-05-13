@@ -2,13 +2,21 @@ Create an Image and Push to my docker hub omeshwar/omjyokan
 Create a Dockerfile for my webpage for Syunsi
 # Create a Dockerfile to pull an ubuntu latest image and create a base image.
 
-
 FROM ubuntu:latest
 ENV DEBIAN_FRONTEND=noninteractive 
 RUN apt-get update && apt-get install apache2 -y && apt-get install apache2-utils -y && apt-get install curl && apt-get clean && rm -rf /var/lib/apt/lists/*
+WORKDIR /var/www/html
+Copy index.html index.html
+ADD database/form.html database/Style.css database/syunsi.mp4 /var/www/html
 EXPOSE 80
 HEALTHCHECK CMD curl --fail http://localhost:80/ || exit 1
-ENTRYPOINT service apache2 restart && bash
+CMD ["apachectl", "-D", "FOREGROUND"]
+
+" This command will pick the configuration from default configuration directories. Also, this “DFOREGROUND” flag ensure apache parent will run in the foreground and not detach
+from the shell. One of the main uses of this method is to get apache to log to the console in the foreground. We can see the debug logs in the console itself, no need to tail 
+the apache log files. Also, when you run  apache/httpd server on Docker, using “docker exec” or  “docker cmd” , it is necessary to start httpd/apache in foreground.
+If you run it as daemon  Docker will exit thinking the job has finished.
+Update the Image with StyleSheet.css, home.jpg, logo.jpg, form.html, Style.css for form and video by using ADD to create a webpage. "
 
 docker build -t webserver .  # Create a Custom Ubuntu Image from Ubuntu
 
@@ -23,39 +31,3 @@ docker tag webserver:latest omeshwar/omjyokan:webserver-v1
 docker push omeshwar/omjyokan:webserver-v1
 
 
-Update the Image with StyleSheet.css, home.jpg, logo.jpg, form.html, Style.css for form and video by using ADD to create a webpage.
-
-FROM ubuntu:latest
-ENV DEBIAN_FRONTEND=noninteractive 
-RUN apt-get update && apt-get install apache2 -y && apt-get install apache2-utils -y && apt-get install curl && apt-get clean && rm -rf /var/lib/apt/lists/*
-EXPOSE 80
-Copy index.html /var/www/html/ 
-ADD test/StyleSheet.css test/homepic.jpg test/logo.JPG database/syunsi.mp4 database/form.html database/Style.css /var/www/html
-HEALTHCHECK CMD curl --fail http://localhost:80/ || exit 1
-ENTRYPOINT service apache2 restart && bash
-
-Create an Image which will take basic layers from earlier image and add only new layers for new parameters.
-
-docker build -t webserver1 .
-
-docker run -dit -p 8080:80 webserver1
-c0a566c66eaae6e1857ac4fbfa6932cff6e97a439e508e43bde7d8e52a4fe39c
-PS C:\Users\DELL> docker ps
-CONTAINER ID   IMAGE        COMMAND                  CREATED         STATUS                            PORTS                                   NAMES
-c0a566c66eaa   webserver1   "/bin/sh -c 'service…"   9 seconds ago   Up 6 seconds (health: starting)   0.0.0.0:8080->80/tcp, :::8080->80/tcp   mystifying_margulis
-
-check the webserver on loaclhost:8080 or directly from Docker Desktop browse which is displaying the Home Page as desired and accessed from local system browser
-Push this Image to Docker Hub as V2.
-
-PS C:\Users\DELL> docker tag webserver1:latest omeshwar/omjyokan:webserver-v2
-PS C:\Users\DELL> docker push omeshwar/omjyokan:webserver-v2
-The push refers to repository [docker.io/omeshwar/omjyokan]
-2349d1806972: Pushed
-444633e14656: Pushed
-d8cf489d39c2: Layer already exists
-2f140462f3bc: Layer already exists
-63c99163f472: Layer already exists
-ccdbb80308cc: Layer already exists
-webserver-v2: digest: sha256:d3210b19018ca7ec60faa331377db625098b25d3439febb64f5325a810bb3790 size: 1573
-
-Image is pushed as "webserver-v2"
