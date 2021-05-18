@@ -1,0 +1,28 @@
+An Operating is made of many components, but its two prime components are - Kernel and Shell
+Kernel: It is at the nucleus of a computer. It makes the communication between the hardware and software possible. While the Kernel is the innermost part of an operating system,
+a shell is the outermost one.
+Shell: It is a UNIX term for an interface between a user and an operating system service. A shell takes input from users in the form of commands, processes it, and then gives
+an output. The Shell wraps around the delicate interior of an Operating system protecting it from accidental damage, hence the name Shell.
+Types of Shell: There are two main shells in Linux - The Bourne Shell & The C shell
+1. The Bourne Shell: The prompt for this shell is $ and its derivatives are listed below:
+POSIX shell also is known as sh
+Korn Shell also knew as sh
+Bourne Again Shell also knew as bash (most popular)/ BASH Shell
+2. The C shell: The prompt for this shell is %, and its subcategories are:
+C shell also is known as csh
+Tops C shell also is known as tcsh
+
+How to Write Shell Script in Linux/Unix: Shell Scripts are written using text editors vi/nano/vim
+1. Create a file using a vi editor(or any other editor).  Name  script file with extension .sh
+2. Start the script with #! /bin/sh  
+3. Write some code.
+4. Save the script file as filename.sh
+5. For executing the script type bash filename.sh
+
+"#!" is an operator called shebang which directs the script to the interpreter location. So, if we use"#! /bin/sh" the script gets directed to the bourne-shell.
+Sample script: "test.sh"
+Create a file test.sh to replace command "ls" as script wiht its content  line 1: #!/bin/sh and line 2: ls  
+Add comment staring with # e.g. # list the content of the present working directory and another command "pwd" to provide the information of the prsent dierctory.
+So script will have now line 3: comment and line 4: pwd
+$ bash test.sh will execute script to provide information on the present working directory and the contents of this directory.
+( We can add command like ps, df -h, free -m.... to get all such information by executing a simple script ).
