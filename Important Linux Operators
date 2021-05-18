@@ -31,3 +31,29 @@ Filters: A filter takes input from one command, does some processing, and gives 
 e.g. we have a file "test" containing words " dog, mouse, rat, mango, deer" so we can filter based on a character present or absent in the word.
 Case 1: filter out all words with char "a" in normal and reverse order (-r Reverses  sorting, -n Sorts numerically, -f Case insensitive sorting) 
 $ cat test | grep -v a | sort -f  ( deer dog mouse ) and $ cat test | grep -v a | sort -r ( mouse dog deer )
+
+Regular Expressions: ^	matches start of string, $	matches end of string, *	matches up zero or more times the preceding character...
+e.g. $ cat test | grep r$  ( deer) and $ cat test | grep ^d  ( dog deer )
+
+
+Variables:
+A variable is a location for storing a value which can be a filename, text, number or any other data. It is usually referred to with its Symbolic name which is given
+to it while creation. The value thus stored can be displayed, deleted, edited and re-saved. Variables play an important role in computer programming because they enable 
+programmers to write flexible programs. As they are related to the Operating system that we work on, it is important to know some of them and how we can influence them
+
+Envionment Variables: 
+Environment variables are dynamic values which affect the processes or programs on a computer. They exist in every operating system, but types may vary.
+Environment variables can be created, edited, saved, and deleted and give information about the system behavior.
+Environment variables can change the way a software/programs behave.
+$ env  (To displays all the environment variables)
+$ echo $ " NAME OF THE VARIABLE"  ( to determine value of a variable and Variables are- Case Sensitive Capitals )
+e.g. PATH : This variable contains a colon (:)-separated list of directories in which your system looks for executable files. The shell looks for the command in 
+different directories mentioned in the $PATH variable. If the command is found, it executes. Otherwise, it returns with an error 'command not found'.
+# echo $PATH
+/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+( USER	The username, HOME	Default path to the user's home directory, EDITOR	Path to the program which edits the content of files, UID	User's unique ID,
+TERM	Default terminal emulator, SHELL	Shell being used by the user )
+Create a New Variable: $ VARIABLE_NAME= variable_value
+Deleting Variables: $ unset "variablename"
+To set value of an environment variable: $ export Variable=value
+
