@@ -12,7 +12,9 @@ EXPOSE 80
 HEALTHCHECK CMD curl --fail http://localhost:80/ || exit 1
 CMD ["apachectl", "-D", "FOREGROUND"]
 
-" This command will pick the configuration from default configuration directories. Also, this “DFOREGROUND” flag ensure apache parent will run in the foreground and not detach
+Explanation of Bash Control Operators: &&, CMD and || commands:
+"  Command && menas execute the statement which follows only if the preceding statement executed successfully (returned exit code zero).
+CMD [ ] command will pick the configuration from default configuration directories. Also, this “DFOREGROUND” flag ensure apache parent will run in the foreground and not detach
 from the shell. One of the main uses of this method is to get apache to log to the console in the foreground. We can see the debug logs in the console itself, no need to tail 
 the apache log files. Also, when you run  apache/httpd server on Docker, using “docker exec” or  “docker cmd” , it is necessary to start httpd/apache in foreground.
 If you run it as daemon  Docker will exit thinking the job has finished.
