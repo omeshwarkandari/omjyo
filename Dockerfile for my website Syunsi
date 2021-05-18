@@ -16,7 +16,10 @@ CMD ["apachectl", "-D", "FOREGROUND"]
 from the shell. One of the main uses of this method is to get apache to log to the console in the foreground. We can see the debug logs in the console itself, no need to tail 
 the apache log files. Also, when you run  apache/httpd server on Docker, using “docker exec” or  “docker cmd” , it is necessary to start httpd/apache in foreground.
 If you run it as daemon  Docker will exit thinking the job has finished.
-Update the Image with StyleSheet.css, home.jpg, logo.jpg, form.html, Style.css for form and video by using ADD to create a webpage. "
+Update the Image with StyleSheet.css, home.jpg, logo.jpg, form.html, Style.css for form and video by using ADD to create a webpage. 
+Healthcheck: curl command makes a HTTP request inside the container, which checks that the web app in the container does respond. Now, http://localhost || exit 1 means if 
+http://localhost succeeds i.e. exit code 0 or Docker Healthy else exit code 1 which means the Docker the container is unhealthy so exit the process.
+e.g. cmd1 || cmd2 What happens is that if cmd1 succeeds (i.e. exit code 0), then cmd2 will NOT be performed. cmd2 will only be performed if cmd1 fails. "
 
 docker build -t webserver .  # Create a Custom Ubuntu Image from Ubuntu
 
