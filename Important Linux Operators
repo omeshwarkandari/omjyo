@@ -1,0 +1,33 @@
+I/O Redirection: KB is a standard Input Device while Screen is a standard Output Device, Whenever you execute a program/command at the terminal, 3 files are always open,
+viz., standard input as Exit Code 0, standard output Exit Code 1, standard error Exit Code 2 which are also known as File Descriptors (FD). In Linux/Unix, everything is a file. 
+Regular file, Directories, and even Devices are files. Every File has an associated number called File Descriptor (FD). Screen also has a File Descriptor. When a program is 
+executed the output is sent to File Descriptor of the screen and program output seen on monitor. If sent to File Descriptor of the printer, the program output is printed.
+
+Output redirection pearator ">"  and Output append operator ">>":  helps redirect the program output to a file rather than online display. e.g. $ echo "myprogram" > "xyz" redirects the ouput to a file xyz and 
+$ echo "myprogram" >> "xyz" will enable adding the to the file rather than overwrite the the output of first run. This is frequently used to capture the error for analysis.
+Opeartor "2>&1" e.g. we run a command  $ ls document XYZ  and the output is below which means dir "XYZ" exists with a file "abc" while no dir named "document" in the system.
+ls: cannot access 'document': No such file or directory
+XYZ:
+abc
+Lets can use "2>&1": $ ls document XYZ > test 2>&1 will redirect the both the output as well as error in the file "test" as shpwn below.
+$ cat test
+ls: cannot access 'document': No such file or directory
+XYZ:
+abc
+
+Input redirection operator "<" : Attach a File to email  $ Mail -s "Subject" to-address < Filename  or $ Mail -s "Approval Request" jonny@gmail.com < abc
+">&"re-directs output of one file to another.
+
+Pipe operator "|" : The Pipe command helps output of one command serves as input to the next in a way that O/P of each process becomes the I/P to the next one like a pipeline.
+Use Cases: 'cat' command to view a large file because prompt quickly jumps to the last page of the file and we do not see the content in the middle.
+$ cat filename | less : Pages will only scroll one length of content at a time.
+$ cat filename | more
+
+Grep: To search a particular information the postal code from a text file e.g    $ grep "text name" "file name"
+$ cat "file name" | grep -i "text name"    e.g. -i	Match both (upper and lower) case, -v	Shows all the lines that do not match the searched string,
+-c	Displays only the count of matching lines, -n	Shows the matching line and its number, -i	Match both (upper and lower) case.
+
+Filters: A filter takes input from one command, does some processing, and gives output. Linux has a lot of filter commands like awk, grep, sed, spell, and wc.
+e.g. we have a file "test" containing words " dog, mouse, rat, mango, deer" so we can filter based on a character present or absent in the word.
+Case 1: filter out all words with char "a" in normal and reverse order (-r Reverses  sorting, -n Sorts numerically, -f Case insensitive sorting) 
+$ cat test | grep -v a | sort -f  ( deer dog mouse ) and $ cat test | grep -v a | sort -r ( mouse dog deer )
