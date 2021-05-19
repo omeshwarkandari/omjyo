@@ -38,7 +38,9 @@ e.g
 [default]
 aws_access_key_id = 
 aws_secret_access_key = 
-$ aws configure (Setup the profile as this is needed in Step 4 fro IAM User/Role creation)
+$ aws configure (Setup the profile as this is needed in Step 4 fro IAM User/Role creation)AWS
+Export to use a Profile:
+$ export AWS_PROFILE=<profile name>
 
  
 2. Install kops on ubuntu instance:
