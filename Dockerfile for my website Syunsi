@@ -14,18 +14,20 @@ CMD ["apachectl", "-D", "FOREGROUND"]
 
 Explanation of Bash Control Operators: &&, CMD and || commands:
 "  Command && menas execute the statement which follows only if the preceding statement executed successfully (returned exit code zero).
-CMD [ ] command will pick the configuration from default configuration directories. Also, this “DFOREGROUND” flag ensure apache parent will run in the foreground and not detach
-from the shell. One of the main uses of this method is to get apache to log to the console in the foreground. We can see the debug logs in the console itself, no need to tail 
-the apache log files. Also, when you run  apache/httpd server on Docker, using “docker exec” or  “docker cmd” , it is necessary to start httpd/apache in foreground.
+CMD [ ] command will pick the configuration from default configuration directories. If we run CMD ["apachectl", "FOREGROUND"] and after creating image if we create a container
+then it will exit because Container is just a process which actually run so to keep the Container/Process running we need to add "-D" swicth to ensure apache parent will run
+in the foreground and not detach from the shell. "apachectl" is to start the stopped apache services.
+Also, when you run  apache/httpd server on Docker, using “docker exec” or  “docker cmd” , it is necessary to start httpd/apache in 
+foreground.
 If you run it as daemon  Docker will exit thinking the job has finished.
 Update the Image with StyleSheet.css, home.jpg, logo.jpg, form.html, Style.css for form and video by using ADD to create a webpage. 
 Healthcheck: curl command makes a HTTP request inside the container, which checks that the web app in the container does respond. Now, http://localhost || exit 1 means if 
 http://localhost succeeds i.e. exit code 0 or Docker Healthy else exit code 1 which means the Docker the container is unhealthy so exit the process.
 e.g. cmd1 || cmd2 What happens is that if cmd1 succeeds (i.e. exit code 0), then cmd2 will NOT be performed. cmd2 will only be performed if cmd1 fails. "
 
-docker build -t webserver .  # Create a Custom Ubuntu Image from Ubuntu
+$ docker build -t webserver .  # Create a Custom Ubuntu Image from Ubuntu
 
-docker run -dit -p 8080:80 webserver # Craete a docker conatiner with health check and access apache at localhost:8080
+$ docker run -dit -p 8080:80 webserver # Craete a docker conatiner with health check and access apache at localhost:8080
 
 #Push the Image to the Docker Hub
 #Logout from the Docker Hub 
@@ -34,5 +36,31 @@ docker login -u omeshwar
 # Create a tag for image webserver:latest in our repo REPONAME:tag
 docker tag webserver:latest omeshwar/omjyokan:webserver-v1
 docker push omeshwar/omjyokan:webserver-v1
+
+
+Simple Dockerfile:
+
+FROM ubuntu:latest
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update
+RUN apt-get install -y apache2
+CMD ["apachectl", "-D", "FOREGROUND"]
+
+( We can add ENTRYPOINT and ENTRYPOINT always specifies the executable as its first argument e.g. apchectl
+FROM ubuntu:latest
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update
+RUN apt-get install -y apache2
+CMD ["-D", "FOREGROUND"]
+ENTRYPOINT ["apachectl"]
+
+& To test with -D swicth:
+
+FROM ubuntu:latest
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update
+RUN apt-get install -y apache2
+CMD ["apachectl", "FOREGROUND"]
+
 
 
