@@ -87,8 +87,8 @@ $ cat ~/.aws/credentials ( It should show the "kops" credentials by replacing th
 e.g. hosted zone is "demo.com" in the private dns space.
 # Create using R53 Console
 # Under Test: CLI (aws route53 create-hosted-zone --name example.com --caller-reference 2014-04-01-18:47 --hosted-zone-config Comment="command-line version")
-$ aws route53 create-hosted-zone --name demo.com --caller-reference 2021-05-09-20:10 --hosted-zone-config Comment="command-line version"
-$ aws route53 associate-vpc-with-hosted-zone --hosted-zone-id abc --vpc defaultvpc
+$ aws ec2 describe-vpcs
+$ aws route53 create-hosted-zone --name demo.com --caller-reference 1 --vpc VPCRegion=us-east-1,VPCId=vpc-498e4534
 # Hosted Zone "demo.com" in private dns created succesffully but issue in cluster creation.
 # Test the hosted zone
 $ dig demo.com
@@ -110,11 +110,11 @@ $ export AWS_ACCESS_KEY_ID=$
 $ export AWS_SECRET_ACCESS_KEY=$
 $ export KOPS_STATE_STORE=
 $ export ZONES=us-east-1
-$ export NAME=clustername
+$ export NAME=mycluster
 
 
 9. Create kubernetes cluser
-$ kops create cluster --name= clustername \
+$ kops create cluster --name= mycluster.dem.com \
 --zones=us-east-1a \
 --node-count=2 \
 --dns-zone=demo.com \
