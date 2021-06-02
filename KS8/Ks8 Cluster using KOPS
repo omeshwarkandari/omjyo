@@ -129,8 +129,11 @@ Suggestions:
  * edit this cluster with: kops edit cluster cluster.demo.com 
  * edit your node instance group: kops edit ig --name=cluster.demo.com nodes-us-east-1a
  * edit your master instance group: kops edit ig --name=cluster.demo.com master-us-east-1a
+ In case of HA we can craete master and nodes in mutlriple AZ's for resilency but it has additonal cost both in terms of EC2 Resource for Master but also you pay for the
+ cross-AZ traffic. Since the kubernetes etcd cluster runs on the master nodes, you have to specify an odd number of zones in order to obtain quorum.
+ $ kops create cluster --name= mycluster.demo.com --zones=us-east-1a,us-east-1c,us-east-1b --node-count=3 --master-zones=us-east-1a,us-east-1c,us-east-1b
+ --dns-zone=demo.com --dns private
 Finally configure your cluster with: kops update cluster --name cluster.demo.com --yes --admin }
-
 $ kops edit cluster <cluster-name>                                                    (To edit cluster info including name)
 $ kops edit ig --name=<cluster-name> nodes-us-east-1a --state=<s3bucket-name>         (To edit the worker node configuration rather than default)
 $ kops edit ig --name=<cluster-name> master-us-east-1a --state=<s3bucket-name>        (To edit the master node configuration rather than default)
