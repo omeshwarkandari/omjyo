@@ -1,9 +1,13 @@
 Setup Kubernetes (K8s) Cluster on AWS using KOPS (Kubernetes Operations Tool)
+Cluster Types: Public/Private
 1) Public Cluster (Cluster in a Public VPC Subnet and directly accessible from Local System)
 2) Private Cluster (Cluster in a Private VPC Subnet and accessible only through a Bastion Host created in Publcic VPC Subnet where Utility Zone means public subnet zone)
 3) Private Cluster with bastion also in private subnet
+Cluster Creation Methods:
+1). User AWS Profile which is part of a Group having IAM/S3/EC2/VPC/R53 Full Access using any Remote System with pre-requistes (AWS CLI, KOPS, KUBECTL) installed.
+2). EC2 Instance with IAM Role and pre-requistes (AWS CLI, KOPS, KUBECTL) installed.
 
-Create Ubuntu EC2 instance and set-up pre-requites:
+Envionment Setup:
 1. AWS CLI and Configure
 2. KOPS Client
 3. KUBECTL Client
