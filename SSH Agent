@@ -1,0 +1,46 @@
+GNU/Linux Crypto: Agents
+Both GnuPG and SSH securely set up, we’re able to encrypt, decrypt, sign, and verify messages, and securely authenticate to remote servers without any risk of exposing passwords
+and with effectively zero possibility of a brute-force attack. This is all great, but there’s still one more weak link in the chain with which to deal — our passphrases.
+If you use these tools often, typing your passphrase for most operations can get annoying. It may be tempting to either include a means of automating the passphrase entry,
+or not to use a passphrase at all, leaving your private key unencrypted. As security-conscious users, we definitely want to avoid the latter in case our private key file ever 
+gets stolen, which is where the concepts of agents for both SSH and GnuPG comes into play.
+An agent is a daemon designed to streamline the process of using decrypted private keys by storing the details securely in memory, ideally for a limited period of time. 
+What this allows you do with both SSH and GnuPG is to type your passphrase just once, and subsequent uses that require the unencrypted private key are managed by the agent.
+
+SSH agents:
+The ssh-agent(1) program comes as part of the OpenSSH suite. It can be run in two modes, either as a parent process, or daemonized into the background.
+We’ll discuss the latter method, as it’s more commonly used and more flexible.
+Setup: When we run ssh-agent(1) for the first time, its behavior is curious; it appears to do nothing except spit out some cryptic shell script:
+$ ssh-agent 
+SSH_AUTH_SOCK=/tmp/ssh-EYqoH3qwfvbe/agent.28881; export SSH_AUTH_SOCK;
+SSH_AGENT_PID=28882; export SSH_AGENT_PID;
+echo Agent pid 28882;
+However, we can see that the daemon is running with the PID it mentions:
+$ ps 28882
+  PID TTY      STAT   TIME COMMAND
+28882 ?        Ss     0:00 ssh-agent
+So if it’s running fine, what’s with all the shell script it outputs? Why doesn’t it just run that for us?
+The answer is an interesting workaround to a stricture of the Unix process model; specifically, a process cannot modify its parent environment. The variables SSH_AUTH_SOCK 
+and SSH_AGENT_PID are designed to allow programs like ssh(1) to find the agent so it can communicate with it, so we definitely need them set. However, if ssh-agent(1) were to
+set these variables itself, it would only apply for its own process, not the shell where we called it. Therefore, not only do we need to run ssh-agent(1), we need to execute
+the code it outputs so the variables get assigned in our shell. A good method of doing this in Bash is using eval and command substitution with $(...):
+$ eval "$(ssh-agent)"
+Agent 3954
+If we run this, we can see that not only is ssh-agent(1) running, we have two new variables in our environment identifying its socket path and process ID:
+$ pgrep ssh-agent
+3954
+$ env | grep ^SSH
+SSH_AUTH_SOCK=/tmp/ssh-oF1sg154ygSt/agent.3953
+SSH_AGENT_PID=3954
+With this done, the agent is ready, and we can start using it to manage our keys for us.
+The next step is to load our keys into the agent with ssh-add(1). Pass this program the full path to the private key you would like to use with the agent. This is likely either ~/.ssh/id_rsa or ~/.ssh/id_dsa:
+$ ssh-add ~/.ssh/id_rsa
+Enter passphrase for /home/tom/.ssh/id_rsa:
+Identity added: /home/tom/.ssh/id_rsa (/home/tom/.ssh/id_rsa)
+You can leave out the filename argument if you want ssh-add to add any or all of the default key types in ~/.ssh if they exist (id_dsa, id_rsa, and id_ecdsa):
+$ ssh-add
+Either way, you should be prompted for your passphrase; this is expected, and you should go ahead and type it in.
+If we then ask ssh-add(1) to list the keys it’s managing, we see the key we just added:
+$ ssh-add -l
+4096 87:ec:57:8b:ea:24:56:0e:f1:54:2f:6b:ab:c0:e8:56 /home/tom/.ssh/id_rsa (RSA)
+With this done, if we try to use this key to connect to another server, we no longer need to provide the passphrase; we’re just logged straight in.
