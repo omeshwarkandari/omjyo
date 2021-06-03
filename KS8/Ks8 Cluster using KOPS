@@ -1,4 +1,6 @@
-Setup Kubernetes (K8s) Cluster on AWS
+Setup Kubernetes (K8s) Cluster on AWS using KOPS (Kubernetes Operations Tool)
+1) Public Cluster (Cluster in a Public VPC Subnet and directly accessible from Local System)
+2) Private Cluster (Cluster in a Private VPC Subnet and accessible only through a Bastion Host created in Publcic VPC Subnet)
 
 Create Ubuntu EC2 instance and set-up pre-requites:
 1. AWS CLI and Configure
@@ -112,7 +114,7 @@ $ export KOPS_STATE_STORE=
 $ export ZONES=us-east-1
 $ export NAME=mycluster
 
-
+Set-up Public Cluster:
 9. Create kubernetes cluser
 $ kops create cluster --name= mycluster.dem.com \
 --zones=us-east-1a \
@@ -153,5 +155,26 @@ Expose the deployment as service. This will create an ELB in front of those 2 co
 
 kubectl expose deployment sample-nginx --port=80 --type=LoadBalancer
 kubectl get services -o wide
-To delete cluster
+
+
+
+# Private Cluster
+$ kops create cluster --name= mycluster.demo.com --zones=us-east-1a --node-count=2 --master-zones=us-east-1a --dns-zone=demo.com --dns private --topology private --networking calico 
+$ kops create instancegroup bastions --role Bastion --subnet utility-us-east-1a --name mycluster.demo.com
+$ kops update cluster --name mycluster.demo.com
+$ kops rolling-update cluster --name mycluster.demo.com
+# This will create a Bastion Host in bastion public subnet as well as ELB for our "bastions" instance group that we can check with the following command:
+$aws elb --output=table describe-load-balancers|grep DNSName.\*bastion|awk '{print $4}'
+$ ssh -i ~/.ssh/id_rsa ubuntu@ ELB DNS Name  or $ ssh -A ubuntu@ ELB DNS Name
+# To enable Bation host ssh into Cluster Nodes we need to follow below steps with the explanation shared in the document SSH Agent
+$ ssh-agent
+$ eval "$(ssh-agent)" or eval `ssh-agent -s` 
+$ ssh-add ~/.ssh/id_rsa
+$ ssh-add -l
+Identity added: /home/kops/.ssh/id_rsa (/home/kops/.ssh/id_rsa), Now ssh to your bastion ELB FQDN and from bastion host again ssh into the Cluster Node with its Private DNS/IP
+$ ssh -A ubuntu@ ELB DNS Name e.g. $ ssh -A ubuntu@bastion-privatekOpscluste-bgl0hp-1327959377.us-east-1.elb.amazonaws.com
+ubuntu@ip-172-20-2-64:~$ ssh ubuntu@ Master Node Private DNS
+# We can automate the SSH Into Bastion
+$ ssh -A ubuntu@`aws elb --output=table describe-load-balancers|grep DNSName.\*bastion|awk '{print $4}'`
+
 
