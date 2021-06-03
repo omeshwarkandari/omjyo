@@ -1,6 +1,7 @@
 Setup Kubernetes (K8s) Cluster on AWS using KOPS (Kubernetes Operations Tool)
 1) Public Cluster (Cluster in a Public VPC Subnet and directly accessible from Local System)
-2) Private Cluster (Cluster in a Private VPC Subnet and accessible only through a Bastion Host created in Publcic VPC Subnet)
+2) Private Cluster (Cluster in a Private VPC Subnet and accessible only through a Bastion Host created in Publcic VPC Subnet where Utility Zone means public subnet zone)
+3) Private Cluster with bastion also in private subnet
 
 Create Ubuntu EC2 instance and set-up pre-requites:
 1. AWS CLI and Configure
@@ -140,9 +141,11 @@ $ kops edit cluster <cluster-name>                                              
 $ kops edit ig --name=<cluster-name> nodes-us-east-1a --state=<s3bucket-name>         (To edit the worker node configuration rather than default)
 $ kops edit ig --name=<cluster-name> master-us-east-1a --state=<s3bucket-name>        (To edit the master node configuration rather than default)
 $ kops update cluster --name <cluster-name> --yes --admin
-
 # Validate your cluster
 $ kops validate cluster
+#Additional Commands once cluster edited post creation
+$ kops update cluster --name <cluster-name> --state <bucket name> --yes
+$ kops rolling-update cluster --state <bucket name> --yes --cloudonly
 
 kubectl get nodes 
 Deploying Nginx container on Kubernetes
@@ -159,7 +162,14 @@ kubectl get services -o wide
 
 
 # Private Cluster
-$ kops create cluster --name= mycluster.demo.com --zones=us-east-1a --node-count=2 --master-zones=us-east-1a --dns-zone=demo.com --dns private --topology private --networking calico 
+$ export ZONES=us-east-1
+$ export KOPS_STATE_STORE=s3://bucket.demo.com
+$export NAME=mycluster.demo.com
+Craete Cluster with Bastion Host in Public Subnet:
+$ kops create cluster --node-count 2 --node-size t2.micro --master-size t3.medium --zones us-east-1a --master-zones us-east-1a --dns-zone demo.com --topology private 
+--networking calico --dns priv
+
+$ export KOPS_STATE_STORE=s3://bucket.demo.comate --bastion ${NAME}
 $ kops create instancegroup bastions --role Bastion --subnet utility-us-east-1a --name mycluster.demo.com
 $ kops update cluster --name mycluster.demo.com
 $ kops rolling-update cluster --name mycluster.demo.com
@@ -177,4 +187,7 @@ ubuntu@ip-172-20-2-64:~$ ssh ubuntu@ Master Node Private DNS
 # We can automate the SSH Into Bastion
 $ ssh -A ubuntu@`aws elb --output=table describe-load-balancers|grep DNSName.\*bastion|awk '{print $4}'`
 
+# Create Cluster with Bastion Host in Private Subnet:
+$ kops create cluster --node-count 2 --node-size t2.micro --master-size t2.micro --zones us-east-1a --master-zones us-east-1a --dns-zone demo.com
+--topology private --networking calico --dns private --bastion ${NAME}
 
