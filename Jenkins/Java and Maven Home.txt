@@ -7,8 +7,8 @@ $ find /usr/lib/jvm/java-1.8* | head -n 3
 
 $ nano ~/.bash_profile
 JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.282.b08-1.amzn2.0.1.x86_64
-PATH=$PATH:$HOME/bin:$JAVA_HOME
-export PATH
+export JAVA_HOME=$JAVA_HOME
+export PATH=$PATH:$JAVA_HOME/bin
 
 $ source ~/.bash_profile
 
@@ -17,16 +17,19 @@ $ java-version
 
 
 Set-up Maven Envionment:
-Install Maven e.g. we have installed in the home path of Centos.
+Install Maven in the /opt directory to avoid issue while configuiring Maven home in the Jenkins Global Tool Configuration.
+[ec2-user@ip-172-31-90-223 ~]$ cd /opt/
+[ec2-user@ip-172-31-90-223 opt]$ sudo wget  https://downloads.apache.org/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
+$ tar -zxvf apache-maven-3.6.3-bin.tar.gz
+$ cd apache-maven-3.6.3/
 $ pwd
-/home/ec2-user/apache-maven-3.6.3
-we will just add $PWD/bin which is  here /home/ec2-user/apache-maven-3.6.3/bin in the JAVA_HOME path above
-i.e. JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.282.b08-1.amzn2.0.1.x86_64:/home/ec2-user/apache-maven-3.6.3/bin and edit the bash_profile
+/opt/apache-maven-3.6.3
 
+Add/append the $PWD/bin or /opt/apache-maven-3.6.3/bin on the export PATH in the bash_profile:
 $ nano ~/.bash_profile
-JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.282.b08-1.amzn2.0.1.x86_64:/home/ec2-user/apache-maven-3.6.3/bin
-PATH=$PATH:$JAVA_HOME/bin:$JAVA_HOME
-export PATH
+JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.282.b08-1.amzn2.0.1.x86_64
+export JAVA_HOME=$JAVA_HOME
+export PATH=$PATH:$JAVA_HOME/bin:/opt/apache-maven-3.6.3/bin
 
 $ source ~/.bash_profile
 
@@ -53,8 +56,6 @@ M2_HOME=/opt/maven/apache-maven-3.6.3
 M2=/opt/maven/apache-maven-3.6.3/bin
 JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.282.b08-1.amzn2.0.1.x86_64
 PATH=$PATH:$HOME/bin:$JAVA_HOME:$M2_HOME:$M2
-
-
 export PATH
 
 $mvn -v is one way to confirm, however command "mvn clean package" ensures that MVN will build artifacts correctly 
