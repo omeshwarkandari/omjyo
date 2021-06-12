@@ -1,6 +1,6 @@
 
 Set-up Java Envionment:
-Install Java: yum install 
+Install Java: yum install java-1.8*
 
 $ find /usr/lib/jvm/java-1.8* | head -n 3
 ( It helps in providing the right Java path)
