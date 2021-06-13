@@ -5,10 +5,10 @@ Create a Dockerfile for my webpage for Syunsi
 FROM ubuntu:latest
 ENV DEBIAN_FRONTEND=noninteractive 
 RUN apt-get update && apt-get install apache2 -y && apt-get install apache2-utils -y && apt-get install curl && apt-get clean && rm -rf /var/lib/apt/lists/*
-WORKDIR /var/www/html
-Copy index.html index.html
-ADD database/form.html database/Style.css database/syunsi.mp4 /var/www/html
 EXPOSE 80
+WORKDIR /var/www/html/
+Copy index.html  index.html
+ADD database/StyleSheet.css database/homepic.jpg database/logo.JPG database/syunsi.mp4 database/form.html database/Style.css /var/www/html/
 HEALTHCHECK CMD curl --fail http://localhost:80/ || exit 1
 CMD ["apachectl", "-D", "FOREGROUND"]
 
@@ -25,10 +25,21 @@ Healthcheck: curl command makes a HTTP request inside the container, which check
 http://localhost succeeds i.e. exit code 0 or Docker Healthy else exit code 1 which means the Docker the container is unhealthy so exit the process.
 e.g. cmd1 || cmd2 What happens is that if cmd1 succeeds (i.e. exit code 0), then cmd2 will NOT be performed. cmd2 will only be performed if cmd1 fails. "
 
+# Build the docker image 
 $ docker build -t webserver .  # Create a Custom Ubuntu Image from Ubuntu
 
+# Build the image docker container 
 $ docker run -dit -p 8080:80 webserver # Craete a docker conatiner with health check and access apache at localhost:8080
 $ docker run --rm -dit -p 8080:80 webserver # --rm will ensure that container is removed on stop so no need for "docker rm" after "docker stop"
+
+# Log into the container
+$ docker exec -it <container name> /bin/bash  (Exec into conatiner will route us to WORKDIR /var/www/htm)
+root@d7f2f1516be7:/var/www/html#
+root@d7f2f1516be7:/var/www/html# ls  (ls will dispaly our source files)
+Style.css  StyleSheet.css  form.html  homepic.jpg  index.html  logo.JPG  syunsi.mp4
+
+# Open the application/webpage on the browser and verify that page opens exactly the way intended.
+http://localhost:8080 
 
 #Push the Image to the Docker Hub
 #Logout from the Docker Hub 
