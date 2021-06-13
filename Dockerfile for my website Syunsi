@@ -28,6 +28,7 @@ e.g. cmd1 || cmd2 What happens is that if cmd1 succeeds (i.e. exit code 0), then
 $ docker build -t webserver .  # Create a Custom Ubuntu Image from Ubuntu
 
 $ docker run -dit -p 8080:80 webserver # Craete a docker conatiner with health check and access apache at localhost:8080
+$ docker run --rm -dit -p 8080:80 webserver # --rm will ensure that container is removed on stop so no need for "docker rm" after "docker stop"
 
 #Push the Image to the Docker Hub
 #Logout from the Docker Hub 
@@ -42,8 +43,7 @@ Simple Dockerfile:
 
 FROM ubuntu:latest
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update
-RUN apt-get install -y apache2
+RUN apt-get update && apt-get install -y apache2
 CMD ["apachectl", "-D", "FOREGROUND"]
 
 ( We can add ENTRYPOINT and ENTRYPOINT always specifies the executable as its first argument e.g. apchectl
