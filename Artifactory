@@ -15,6 +15,12 @@ Login to Jenkins to integrate Artifactory with Jenkins
    - Artifactory Servers
       - Server ID : `Artifactory-Server`
       - URL : `Artifactory Server URL`
+      e.g http://ec2-54-165-178-63.compute-1.amazonaws.com:8081/artifactory or http://public dns-name:8081/artifactory
+      also ensure that this url is reflected in the advance section of the settings, 
+      Note : it is observed that when runing Test Connection the result was "Found Artifactory 0.0.0 on http://ec2-54-165-178-63.compute-1.amazonaws.com:8081/artifactory"
+      while the correct result should be "Found Artifactory 6.9.6 on http://ec2-54-165-178-63.compute-1.amazonaws.com:8081/artifactory" and it was observed that the url in the
+      Advanced Artifactory configuration was having additonal parameter artifactory added "http://ec2-54-165-178-63.compute-1.amazonaws.com:8081/artifactory/artifactory"
+      so this needs to be corrected as "http://ec2-54-165-178-63.compute-1.amazonaws.com:8081/artifactory"
       - Username : `admin`
       - Password : `admin@123
     
