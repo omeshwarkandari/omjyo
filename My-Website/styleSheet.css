@@ -1,0 +1,119 @@
+
+@media (min-width: 600px){
+	body {
+		background-color: auto;
+	}
+}
+
+@media (max-width:  599px) {
+	body {
+		background-color: aqua;
+	}
+}
+
+*{
+	margin: 0px;
+	padding: 0px;
+	font-family: Century Gothic;
+}
+
+header{
+	background-image: url("homepic.jpg");
+	height: 100vh;
+	background-size: cover;
+	background-position: center;
+}
+
+ul{
+	float: right;
+	list-style-type: none;
+	margin-top: 25px;
+}
+
+ul li{
+	display: inline-block;
+}
+
+ul li a{
+	text-decoration: none;
+	color: white;
+	padding: 5px 20px;
+	border: 1px solid transparent;
+	transition: 0.5s ease;
+}
+
+ul li a:hover{
+	color: orange;
+	background-color: white;
+}
+
+.active a{
+	color: orange;
+	background-color: white;
+}
+
+.active a play {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%,-50%);
+	height: auto;
+}
+
+.logo img{
+	float: left;
+	margin-top: 15px;
+	width: 250px;
+	height: auto;
+}
+
+.main{
+	max-width: 1200px;
+	margin: auto;
+}
+
+.title{
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%,-50%);
+}
+
+.title h1{
+	color: orange;
+	font-size: 65px;
+	text-align: center;
+	font-family: algerian;
+	text-shadow: 2px 2px aqua, 2px 2px green;
+}
+
+.title h2{
+	color: aqua;
+	font-size: 45px;
+	text-align: center;
+	font-family: curlz mt;
+	text-shadow: 2px 2px orange, 2px 2px green;
+}
+
+.button{
+	position: absolute;
+	top: 67%;
+	left: 50%;
+	transform: translate(-50%,-50%);
+}
+
+.btn{
+	border: 1px solid white;
+	padding: 10px 30px;
+	color: white;
+	text-decoration: none;
+	transition: 0.5s ease;
+}
+
+.btn:hover{
+	color: orange;
+	background-color: white;
+}
+
+
+
