@@ -1,0 +1,41 @@
+
+Install and Integrate Artifcatory with Jenkis/SonarQube.
+Installation:
+1. EC2 Instanace preferablt t3.small or larger.
+2. Install Java java-1.8*
+3. install Artifactory Server 
+$ cd /opt
+$ wget https://jfrog.bintray.com/artifactory/jfrog-artifactory-oss-6.9.6.zip
+Start artifactory server service.
+$ cd /opt/artifactory-oss-6.9.6/bin/
+$ ./artifactory.sh start
+Login to Artifactory Server: http:<artifactory-server-pubip/dns-name>:8081/artifacory
+e.g. http://ec2-54-236-103-126.compute-1.amazonaws.com:8081/artifactory
+User: admin and password: password
+Create a user e.g. test with admin prividelege and configure the Artifactory plug-in with this user credentials.
+Integration with Jenkins:
+Install the Artifactory plug-in  and configure in the Global Tool.
+URL: htto://dns-name artifactory server/artifactory
+e.g http://ec2-54-236-103-126.compute-1.amazonaws.com:8081/artifactory
+  
+
+1. Artifactory Maven Job:
+Craete a job in Maven Project and add SCM/Build/Post-build.
+Build - Add Clean Install and leave Root POM empty which will default to pom.xml on save.
+Artifactory Server is auto-picked from the Artifactory plug-in config. 
+ 
+ 
+ 
+
+Run the job:
+Console Output:
+ 
+Verify the artifacts inside the the Artifactory Server: http://ec2-54-236-103-126.compute-1.amazonaws.com:8081/artifactory/webapp/builds/Artifactory/2
+ 
+
+Pipeline to integrate Jenkins-Sonarqube-Artifactory:
+
+ 
+  
+
+
