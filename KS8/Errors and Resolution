@@ -1,0 +1,40 @@
+Jenkins-Sonarqube Integration:
+
+1. Not able to login as "jenkins" user with change user command 
+$ sudo su - jenkins > Last login: Sat Jun 26 07:56:08 UTC 2021 on pts/0
+$ grep jenkins /etc/passwd > jenkins:x:495:441:Jenkins Continuous Integration Server:/var/lib/jenkins:/bin/false
+$ whoami > ec2-user
+while user already created: $ sudo useradd jenkins >> useradd: user 'jenkins' already exists and we can login with any new user created succesfully.
+Workaround:
+$ sudo su - jenkins -s /bin/bash or sudo su -s /bin/bash jenkins
+-bash-4.1$ whoami > jenkins
+-bash-4.1$ echo $HOME > /var/lib/jenkins
+-bash-4.1$ cd .ssh
+-bash-4.1$ pwd > /var/lib/jenkins/.ssh
+
+
+2. Fogot "jenkins" user password
+Disable Jenkins Security by editing config.xml file to change the security setting from "true" to "false" <useSecurity>true</useSecurity> and save the chnages.
+$ sudo nano /var/lib/jenkins/config.xml
+$ sudo systemctl restart jenkins  ( Restart Jenkins service )
+Password Change: Once Jenkins Dashboard is refreshed delete the "admin" account and then recreate it.
+Delete account: People / click on User ID "admin" / delete the admin credentials.
+Create: Go to Jenkins / Manage Jenkins / Configure Global Security / Enable Security check box (if visible) / select Jenkins’ own user database under Security Realm /
+select Logged-in users can do anything under Authorization section / Unselect Allow anonymous read access / Save the settings
+Save settings will redirect to a page to Create First Admin User credentials.
+
+
+3. INFO: EXECUTION FAILURE
+INFO: ------------------------------------------------------------------------
+INFO: Total time: 3.841s
+INFO: Final Memory: 9M/139M
+INFO: ------------------------------------------------------------------------
+ERROR: Error during SonarQube Scanner execution
+ERROR: The 'report' parameter is missing
+ERROR: 
+ERROR: Re-run SonarQube Scanner using the -X switch to enable full debug logging.
+WARN: Unable to locate 'report-task.txt' in the workspace. Did the SonarScanner succeed?
+ERROR: SonarQube scanner exited with non-zero code: 1
+Finished: FAILURE
+
+Resolution: Strat the service using Sonar user ( sonar@ip-172-31-87-243 linux-x86-64]$ ./sonar.sh stop and sonar@ip-172-31-87-243 linux-x86-64]$ ./sonar.sh start )
