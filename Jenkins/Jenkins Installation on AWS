@@ -1,0 +1,264 @@
+# Install Jenkins on AWS EC2
+Jenkins is a self-contained Java-based program, ready to run out-of-the-box, with packages for Windows, Mac OS X and other Unix-like operating systems. As an extensible automation server, Jenkins can be used as a simple CI server or turned into the continuous delivery hub for any project.
+
+
+### Prerequisites
+1. EC2 Instance 
+   - With Internet Access
+   - Security Group with Port `8080` open for internet
+1. Java v1.8.x 
+
+## Install Java
+1. We will be using open java for our demo, Get the latest version from http://openjdk.java.net/install/
+   ```sh
+   yum install java-1.8*
+   #yum -y install java-1.8.0-openjdk-devel
+   ```
+
+1. Confirm Java Version and set the java home
+   ```sh
+   java -version
+   find /usr/lib/jvm/java-1.8* | head -n 3
+   JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-<Java version which seen in the above output>
+   export JAVA_HOME
+   PATH=$PATH:$JAVA_HOME
+    # To set it permanently update your .bash_profile
+   vi ~/.bash_profile
+   ```
+   _The output should be something like this,_
+    ```sh
+   [root@~]# java -version
+   openjdk version "1.8.0_151"
+   OpenJDK Runtime Environment (build 1.8.0_151-b12)
+   OpenJDK 64-Bit Server VM (build 25.151-b12, mixed mode)
+   ```
+
+## Install Jenkins
+ You can install jenkins using the rpm or by setting up the repo. We will set up the repo so that we can update it easily in the future.
+1. Get the latest version of jenkins from https://pkg.jenkins.io/redhat-stable/ and install
+   ```sh
+   yum -y install wget
+   sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
+   sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key
+   yum -y install jenkins
+   ```
+
+   ### Start Jenkins
+   ```sh
+   # Start jenkins service
+   service jenkins start
+
+   # Setup Jenkins to start at boot,
+   chkconfig jenkins on
+   ```
+
+   ### Accessing Jenkins
+   By default jenkins runs at port `8080`, You can access jenkins at
+   ```sh
+   http://YOUR-SERVER-PUBLIC-IP:8080
+   ```
+  #### Configure Jenkins
+- The default Username is `admin`
+- Grab the default password 
+- Password Location:`/var/lib/jenkins/secrets/initialAdminPassword`
+- `Skip` Plugin Installation; _We can do it later_
+- Change admin password
+   - `Admin` > `Configure` > `Password`
+- Configure `java` path
+  - `Manage Jenkins` > `Global Tool Configuration` > `JDK`  
+- Create another admin user id
+
+### Test Jenkins Jobs
+1. Create “new item”
+1. Enter an item name – `My-First-Project`
+   - Chose `Freestyle` project
+1. Under the Build section
+	Execute shell: echo "Welcome to Jenkins Demo"
+1. Save your job 
+1. Build job
+1. Check "console output"
+
+
+
+
+Enable testing on a Java Project
+
+### Pre-requisites
+1. Jenkins server on T2.Medium instance
+2. Maven setup
+
+### Procedure: 
+1. Install below plug-ins
+   1. Junit
+   2. FindBugs
+   3. PMD
+   4. CheckStyle
+   5. Static Analysis Collector
+
+1. Create a Maven Project  
+   GitHub URL : https://github.com/ravdy/petclinic.git  
+   Maven Goals: clean package checkstyle:checkstyle findbugs:findbugs pmd:pmd  
+   Build settings: chose checkstyle, findbugs, pmd  
+
+2. Run you job
+
+
+
+
+#  Install & configure Maven build tool on Jenkins
+Maven is a code build tool which used to convert your code to artifact. this is widely used plugin to build in continuous integration
+
+#### Follow this artical in **[YouTube](https://www.youtube.com/watch?v=wgfsVmHnAiM)**
+
+#### Prerequisites
+1. Jenkins server **[Get Help Here](https://www.youtube.com/watch?v=M32O4Yv0ANc)
+
+#### Install Maven on Jenkins
+Download maven packages https://maven.apache.org/download.cgi onto Jenkins server. In this case I am using /opt/maven as my installation directory
+	- Link : https://maven.apache.org/download.cgi
+```sh
+  # Creating maven directory under /opt
+  mkdir /opt/maven
+  cd /opt/maven
+  # downloading maven version 3.6.0
+  wget http://mirrors.fibergrid.in/apache/maven/maven-3/3.6.0/binaries/apache-maven-3.6.0-bin.zip
+  unzip /opt/maven/apache-maven-3.6.0-bin.zip
+ ```
+	
+Setup M2_HOME and M2 paths in .bash_profile of user and add these to path variable
+```sh
+  vi ~/.bash_profile
+  M2_HOME=/opt/maven/apache-maven-3.6.0
+  M2=$M2_HOME/bin
+  PAHT=<Existing_PATH>:$M2_HOME:$M2
+```
+#### Check point 
+logoff and login to check maven version
+Check maven version 
+```sh
+  mvn –version
+```
+So far you have completed installation of maven software to support maven plugin on jenkins console. Let's jump onto jenkins to complete remining steps. 
+
+#### Setup maven on jenkins console
+- Install maven plugin without restart  
+  - `Manage Jenkins` > `Jenkins Plugins` > `available` > `Maven Invoker`
+  
+#### (Update) Install "Maven Integration" Plugin as well
+- Install maven Integration Plugin without restart 
+  - `Manage Jenkins` > `Jenkins Plugins` > `available` > `Maven Integration`
+  
+- Configure java path
+  - `Manage Jenkins` > `Global Tool Configuration` > `Maven`
+  
+  
+  # Configure Git pulgin on Jenkins
+Git is one of the most popular tool for version contorl system. you can pull code from git repositories using jenkins if you use github plugin. 
+
+#### Follow this artical in **[YouTube](https://www.youtube.com/watch?v=wgfsVmHnAiM)**
+
+#### Prerequisites
+1. Jenkins server **[Get Help Here](https://www.youtube.com/watch?v=M32O4Yv0ANc)
+
+#### Install Git on Jenkins server
+Install git packages on jenkins server
+```sh
+  yum install git -y
+ ```
+
+#### Setup Git on jenkins console
+- Install git plugin without restart  
+  - `Manage Jenkins` > `Jenkins Plugins` > `available` > `github`
+
+- Configure git path
+  - `Manage Jenkins` > `Global Tool Configuration` > `git`
+  
+  
+  # Enable email notification on Jenkins
+
+## pre-requisites
+1. A Jenkins Server [Click here to create]()
+
+## Integration Steps
+Log into the Jenkins to install mailer plugin
+
+1. Install "mailer" plug-in   
+- `Manage Jenkins` -> `Manage Plugins` -> `available` -> `mailer`
+
+2. Configure Mailer   
+- `Manage Jenkins` -> `Configure System`
+    - E-mail Notification:
+    - SMTP server : `smtp.gmail.com`
+  - Advanced: 
+	- [x] `Use SMTP Authentication` 
+	- User Name : `valaxytech@gmail.com`
+	- Passwrod : `<password>`   
+  - [x] `Use SSL`
+	- SMTP Port: `465`
+	- Charset : `UTF-8 (Auto filled)`
+#### Unable to authonticate? 
+  please allow your gmail to access "less security apps" [click here to enable](https://myaccount.google.com/intro/security)
+---
+---
+### Create a Freestyle Project 
+  
+1. Create a new job 
+  - Job Name : `test-email-job`
+  - Source code management 
+     - Git URL : [get URL here](https://github.com/yankils/hello-world.git)
+ - Build Environment 
+     - Maven3-Artifactory Integration : `<provide Artifactory server and repository details
+>`
+ - Build --> Invoke Artifactory Maven3  
+       - Goals: ` clean install`
+
+
+# Build a docker image using Jenkins
+
+
+### Pre-requisites
+
+1. Jenkins server [Get help here]()
+1. DockerHub account  
+
+### Install docker and start docker on Jenkins server 
+```sh 
+  yum install docker -y
+```
+### On Jenkins Console 
+
+Install "docker", "docker-build-step" and "CloudBees Docker Build and Publish" plugins 
+ - `Manage Jenkins` > `Manage Plugins` > `Available` > `docker`
+ - `Manage Jenkins` > `Manage Plugins` > `Available` > `docker-build-step`
+ - `Manage Jenkins` > `Manage Plugins` > `Available` > `CloudBees Docker Build and Publish`
+
+Create dockerHub Credentials to store docker images
+
+- `Credentials` > `System` > `Global Credentials` > `Add Credentials`
+    - username: `valaxy`
+    - Passwrod: `<password>`
+    - ID: `dockerhub_user` 
+               
+ 
+### Steps to create "create_docker_image" Jenkin job
+ #### From Jenkins home page select "New Item"
+   - Enter an item name: `create_docker_image`
+     
+   - *Source Code Management:*
+      - Repository: `https://github.com/yankils/hello-world.git`
+
+   - *Build:*
+          - Goals and options: `clean install`
+
+   - *Docker build and publish*
+          - Repository Name: `valaxy/hello_world
+          - Registry credentials: `credentials`	
+
+Save and run the job now.
+
+#### Next Steps
+
+- [x] [Configure Users & Groups in Jenkins](https://youtu.be/jZOqcB32dYM)
+- [x] [Secure your Jenkins Server](https://youtu.be/19FmJumnkDc)
+- [x] [Jenkins Plugin Installation](https://youtu.be/p_PqPBbjaZ4)
+- [x] [Jenkins Master-Slave Configuration](https://youtu.be/hwrYURP4O2k)
