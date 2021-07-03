@@ -26,7 +26,8 @@ http://localhost succeeds i.e. exit code 0 or Docker Healthy else exit code 1 wh
 e.g. cmd1 || cmd2 What happens is that if cmd1 succeeds (i.e. exit code 0), then cmd2 will NOT be performed. cmd2 will only be performed if cmd1 fails. "
 
 # Build the docker image 
-$ docker build -t webserver .  # Create a Custom Ubuntu Image from Ubuntu
+syntax: docker build <path of the dockerfile> and we can add -t to tag the name of the image e.g. $ docker build -t  <image name>  <path of the dockerfile>
+$ docker build -t webserver .  # Create a Custom Ubuntu Image from Ubuntu where dockerfile is in the root directory
 
 # Build the image docker container 
 $ docker run -dit -p 8080:80 webserver # Craete a docker conatiner with health check and access apache at localhost:8080
