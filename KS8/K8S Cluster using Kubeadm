@@ -155,10 +155,14 @@ Create a user for kubernetes administration and copy kube config file.
 To be able to use kubectl command to connect and interact with the cluster, the user needs kube config file.
 In this case, we are creating a user called kubeadmin
 
-useradd kubeadmin 
+useradd kubeadmin
+passwd kubeadmin
 mkdir /home/kubeadmin/.kube
 cp /etc/kubernetes/admin.conf /home/kubeadmin/.kube/config
 chown -R kubeadmin:kubeadmin /home/kubeadmin/.kube
+chmod -R 755 /home/kubeadmin/.kube
+su - kubeadmin
+
 
 Set Up Pod Network: A Pod Network allows nodes within the cluster to communicate. There are several available Kubernetes networking options.
 Deploy Calico network as a kubeadmin user.
