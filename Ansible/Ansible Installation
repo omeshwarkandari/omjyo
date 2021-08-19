@@ -52,3 +52,9 @@ Part4: Add system to /etc/ansible/hosts file, test ping connection and run the p
 3. Verify the playbook: " ansible-playbook install.yml --check" or "ansible-playbook install.yml -C"
 4. Run the playbook: "ansible-playbook install.yml"
 5. Login the host system and verify the installation of the software packages.
+
+Key Note: Difference between " Service sshd restart and reload"
+Generally speaking, restart will terminate the service in question and restart it; reload will only reload the configuration file.
+Since reload only reloads the config, it will cause less disruption to existing activities and currently open connections; users might not even notice that it was run. 
+However, depending on what server we're talking about, some options may not be changeable using reload; and if the server is using too much memory, etc,
+it may be necessary to use restart to force it to start from a clean slate.
