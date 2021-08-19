@@ -53,7 +53,36 @@ Part4: Add system to /etc/ansible/hosts file, test ping connection and run the p
 4. Run the playbook: "ansible-playbook install.yml"
 5. Login the host system and verify the installation of the software packages.
 
-Key Note: Difference between " Service sshd restart and reload"
+Key Note: Ubuntu host and difference between " Service sshd restart and reload"
+1. Ubuntu system does not craete a home directory by default for a user e.g. in Centos/RHEL family ansadmin use creation creates /home/ansadmin but not in Debian family.
+{ e.g. we create a user ansadmin and run root@ip-172-31-84-168:~# su - ansadmin
+su: warning: cannot change directory to /home/ansadmin: No such file or directory
+$ pwd
+/root   (No home directory for anssdmin
+$
+}
+So we will have to create a home directory for ansdmin 
+root@ip-172-31-84-168:~# cd /home/
+root@ip-172-31-84-168:/home# ls -al
+ drwxr-xr-x  2 root   root   4096 Aug 19 09:03 ansadmin
+ drwxr-xr-x  4 ubuntu ubuntu 4096 Aug 19 08:58 ubuntu
+chown -R ansadmin:ansadmin /home/ansadmin/
+ drwxr-xr-x  2 ansadmin ansadmin 4096 Aug 19 09:03 ansadmin
+ drwxr-xr-x  4 ubuntu   ubuntu   4096 Aug 19 08:58 ubuntu
+root@ip-172-31-84-168:/home#su - ansadmin
+$ pwd
+/home/ansadmin (Home directory created for user ansadmin)
+$exit and 
+# User privilege specification
+root    ALL=(ALL:ALL) ALL
+ansadmin ALL=(ALL:ALL)  NOPASSWD: ALL
+&
+root@ip-172-31-84-168:/home# vi /etc/ssh/sshd_config
+# To disable tunneled clear text passwords, change to no here!
+PasswordAuthentication yes
+service sshd reload
+Copy public key and confirm the connecyion by ssh into the host.
+
 Generally speaking, restart will terminate the service in question and restart it; reload will only reload the configuration file.
 Since reload only reloads the config, it will cause less disruption to existing activities and currently open connections; users might not even notice that it was run. 
 However, depending on what server we're talking about, some options may not be changeable using reload; and if the server is using too much memory, etc,
