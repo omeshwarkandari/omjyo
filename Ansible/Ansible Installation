@@ -20,7 +20,12 @@ Part1: Install and configure Ansible Server
   #PasswordAuthentication no
 }
 8. Reload the service sshd by restarting the sshd daemon so that it does not exit on changing user or system restart.
-sudo systemctl restart ssh.service  & service sshd reload 
+RHEL/CENTOS - sudo systemctl restart sshd.service (Ubuntu/Debian - systemctl restart ssh.service) &  service sshd reload 
+{
+ # systemctl restart sshd.service
+ [root@ip-172-31-94-236 ~]# service sshd reload
+ Redirecting to /bin/systemctl reload sshd.service
+}
 9. Check the password authentication by connecting the Server without user name and keypair in mobaxterm by just entering ip into remote host and click ok, which will prompt:
 login as: ansadmin
 ansadmin@54.165.210.110's password:
