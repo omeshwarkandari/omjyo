@@ -53,6 +53,11 @@ Part4: Add system to /etc/ansible/hosts file, test ping connection and run the p
 4. Run the playbook: "ansible-playbook install.yml"
 5. Login the host system and verify the installation of the software packages.
 
+Part5: Manage the Ansible Server - This is done by using it as localhost system.
+1. Add entery in the hosts file either as "localhost" or private ip address of the Ansible Server.
+2. Copy public key to local host: [ansadmin@ansible-server .ssh]$ ssh-copy-id localhost
+3. Test connection: [ansadmin@ansible-server .ssh]$ ssh localhost
+
 Key Note: Ubuntu host and difference between " Service sshd restart and reload"
 1. Ubuntu system does not craete a home directory by default for a user e.g. in Centos/RHEL family ansadmin use creation creates /home/ansadmin but not in Debian family.
 { e.g. we create a user ansadmin and run root@ip-172-31-84-168:~# su - ansadmin
