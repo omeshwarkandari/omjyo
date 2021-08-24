@@ -1,0 +1,40 @@
+Ansible Galaxy: Galaxy is a repository to create Ansible Role.
+Role: Role is the primary mechanism for breaking a playbook into multiple files to make playbook simple & re-usable.
+
+e.g. Create a setup for installing xyz asset.
+[ansadmin@ansible-server playbook]$ ansible-galaxy init xyz_setup
+- Role xyz_setup was created successfully, which will create a role for each component like tasks, handlers, files, defaults, vars of an ansible playbooks in a
+tree structure to make it re-usable across multi-projects.
+$ ls xyz_setup/
+defaults  files  handlers  meta  README.md  tasks  templates  tests  vars
+
+e.g. lets set up a role for tomcat server installation and copy the respective tasks/variables of the playbook tomcatprodsetup2.yml into roles created.
+It has two parts first create role using Ansible Galaxy to store the mutlipe ansible files and a yml file to play the playbook e.g. tomcat_role.yml
+
+Part1: Create a Role
+$ ansible-galaxy init tomcat_setup
+$ ls tomcat_setup/
+defaults  files  handlers  README.md  tasks  vars (we have  " removed meta templates  test " as not using at the moment)
+$ ls tomcat_setup/tasks/
+main.yml  
+(A role will have a built-in main.yml where we copy respective modules e.g. we copy all the modules under tasks of tomcatprodsetup2.yml into /tomcat_setup/tasks/main.yml,
+handlers task inside /tomcat_setup/handlers/main.yml, content of tomcat_vars.yml isnide /tomcat_setup/vars/main.yml, files like server.xml inside /tomcat_setup/files and variables
+which are of lower priority or generally do not change are kept insdie /tomcat_setup/defaults/main.yml).
+
+Part2: Create a yml file to play the playbook
+$ nano tomcat_role.yml
+This file will have the header part of the tomcatprodsetup2.yml as well as a taks called "roles" which calls the different files of the setup e.g "tomcat_setup".
+$ ansible-playbook -i hosts tomcat_role.yml --limit webservers
+
+we have limited the tomcat deployment to webservers based on the "hosts" file configuration where we are using 172.31.94.236 as tomcat server.
+$ cat playbook/hosts
+
+[webservers]
+172.31.94.236
+# 172.31.87.28
+
+[debianservers]
+172.31.84.168
+
+localhost
+
