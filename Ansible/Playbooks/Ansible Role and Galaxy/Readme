@@ -19,7 +19,8 @@ $ ls tomcat_setup/tasks/
 main.yml  
 (A role will have a built-in main.yml where we copy respective modules e.g. we copy all the modules under tasks of tomcatprodsetup2.yml into /tomcat_setup/tasks/main.yml,
 handlers task inside /tomcat_setup/handlers/main.yml, content of tomcat_vars.yml isnide /tomcat_setup/vars/main.yml, files like server.xml inside /tomcat_setup/files and variables
-which are of lower priority or generally do not change are kept insdie /tomcat_setup/defaults/main.yml).
+which are of lower priority or generally do not change are kept insdie /tomcat_setup/defaults/main.yml e.g. create a user. we can also users by using /vars/main.yml and if we 
+create users through both vars & default then users will be created thrtogh vars/main.yml as it has higher priority).
 
 Part2: Create a yml file to play the playbook
 $ nano tomcat_role.yml
