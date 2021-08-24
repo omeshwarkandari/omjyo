@@ -1,0 +1,14 @@
+---
+- name: Playbook to uninstall jenkins
+  hosts: jenkins
+  become: true
+  gather_facts: yes
+  tasks:
+    - name: stop jenkins service
+      service:
+        name: jenkins
+        state: stopped
+    - name: remove jenkins
+      yum:
+        name: jenkins
+        state: absent
