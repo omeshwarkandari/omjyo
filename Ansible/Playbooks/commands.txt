@@ -1,0 +1,23 @@
+ansible all -m ping
+
+ansible all -m setup
+
+## Default Hosts file: /etc/ansible inside the ansadmin home: /home/ansadmin
+## Enter the host ip address in the default hosts file and run the playbook
+
+ansible-playbook test.yml --check
+
+ansible-playbook test.yml 
+
+
+
+## Create a hosts file:
+## Create a directory playbook to store plays: mkdir playbook 
+## Create a hosts file inside the playbook directory: /home/ansadmin/playbook
+## Add the host ip adresses inside the hosts file of the playbook directory and segregate the hosts e.g rhelservers/debianservers etc
+
+ansible-playbook -i hosts test.yml --limit debianservers --check
+ansible-playbook -i hosts test.yml --limit debianservers 
+
+ansible-playbook -i hosts test.yml --limit rhelservers --check
+ansible-playbook -i hosts test.yml --limit rhelservers

@@ -1,0 +1,33 @@
+---
+- name: Ansible playbook to run httpd with Notify & handlers
+  hosts: all
+  become: true
+  gather_facts: yes
+  tasks:
+    - name: install httpd on RHEL Servers
+      yum:
+        name: httpd
+        state: installed
+      when: ansible_os_family == "RedHat"
+      notify: start httpd services
+    - name: install httpd on DEBIAN Servers
+      apt:
+        name: apache2
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+    - copy:
+        src: /home/ansadmin/playbook/index.html
+        dest: /var/www/html
+
+  handlers:
+    - name: start httpd services
+      service:
+        name: httpd
+        state: started
+
+
+
+Note: Whenever we run this playbbok irrespective of what the httpd service will restart whoch might trigger service outage.
+      To avoid this we introduce notify and handlers where the cript in handler will execute only when notified.
+      This way we can avoid restart for running httpd and trigger restart if its fresh install or change in configuration

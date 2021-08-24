@@ -1,0 +1,80 @@
+---
+- name: Install httpd
+  hosts: all
+  become: true
+  gather_facts: no
+  tasks:
+    - name: install httpd
+      yum:
+        name: httpd
+        state: installed
+    - name: start httpd service
+      service:
+        name: httpd
+        state: started
+    - copy:
+        src: /home/ansadmin/index.html
+        dest: /var/www/html
+
+
+---
+- name: Ansible playbook to run httpd on rhel linux
+  hosts: all
+  become: true
+  gather_facts: yes
+  tasks:
+    - name: install httpd 
+      yum:
+        name: httpd
+        state: installed
+    - name: start httpd service 
+      service:
+        name: httpd
+        state: started
+    - copy:
+        src: /home/ansadmin/index.html
+        dest: /var/www/html  
+
+
+---
+- name: Ansible playbook to run httpd on debian linux
+  hosts: all
+  become: true
+  gather_facts: yes
+  tasks:
+    - name: install httpd 
+      apt:
+        name: apache2
+        state: present
+        update_cache: yes
+    - name: start apache2 service 
+      service:
+        name: apache2
+        state: restarted
+    - copy:
+        src: /home/ansadmin/index.html
+        dest: /var/www/html
+
+---
+- name: Ansible playbook to run httpd with Notify & handlers
+  hosts: all
+  become: true
+  gather_facts: yes
+  tasks:
+    - name: install httpd on RHEL Servers
+      yum:
+        name: httpd
+        state: installed
+      when: ansible_os_family == "RedHat"
+      notify: start httpd services
+    - copy:
+        src: /home/ansadmin/index.html
+        dest: /var/www/html
+
+  handlers:
+    - name: start httpd services
+      service:
+        name: httpd
+        state: started  
+
+ 

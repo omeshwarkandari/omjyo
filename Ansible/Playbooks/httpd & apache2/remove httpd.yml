@@ -1,0 +1,30 @@
+---
+- name: Ansible playbook to to remove httpd/apache2
+  hosts: all
+  become: true
+  gather_facts: yes
+  tasks:
+    - name: remove httpd package
+      yum:
+        name: httpd
+        autoremove: yes
+        state: absent
+      when: ansible_os_family == "Redhat"
+    - name: remove apache2 package
+      apt:
+        name: apache2
+        state: absent
+      when: ansible_os_family == "Debian"
+
+
+---
+- name: Ansible playbook to to remove httpd from rhelservers
+  hosts: all
+  become: true
+  gather_facts: yes
+  tasks:
+    - name: remove httpd package
+      yum:
+        name: httpd
+        autoremove: yes
+        state: absent

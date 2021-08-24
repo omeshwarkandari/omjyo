@@ -1,0 +1,72 @@
+## Create a vars file for password e.g. gitpassword.yml and encrypt it with some password
+## Create a Git clone playbook e.g. gitclone.yml 
+## https://username:password@github.com/omeshwarkandari/test.git is the command line to use passwoed based authentication for private repo which is been replaced by Token based authetication
+## Craete a Personal Auth token and use it as a password (Profile Settings--Develper Settings-- personal access token -- generate with validity and save it e.g. "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")
+## run the playbook: "ansible-playbook -i hosts gitclone.yml --ask-vault-pass" or "ansible-playbook -i hosts gitclone.yml --ask-vault-pass --limit localhost"
+
+
+---
+- name: Clone the private repo
+  hosts: localhost
+  gather_facts: no
+  vars_files:
+     - gitpassword.yml
+  tasks:
+    - name: Clone the repo
+      git:
+        repo: https://omeshwarkandari:{{git_password}}@github.com/omeshwarkandari/test.git
+        dest: /home/ansadmin/test
+
+
+
+
+# Craete an encrypet vars file "git_password.yml" and create passowrd:
+
+[ansadmin@ansible-server playbook]$ ansible-vault create git_password.yml
+New Vault password:
+Confirm New Vault password:
+[ansadmin@ansible-server playbook]$ cat git_password.yml
+$ANSIBLE_VAULT;1.1;AES256
+32383537663132333831383461666638656366613166633163333065313365616161353062373762
+3539383566643633356237303338656563363832356535390a626466316134383535343765353763
+32353661333531356532363739616633666334373965326462626332303037346361353764636431
+3534313032373161350a366535363863353138653335316639303264316634313365656232613861
+61366131626232333835303731316130626436316433343434623063323764626436653135356330
+34373937386539623630393731613637316237303136666638656461306436313338386330316439
+343439616162656133383465376335356166
+
+## run the playbook "gitclone.yml" in the localhost only.
+[ansadmin@ansible-server playbook]$ ansible-playbook -i hosts gitclone.yml --limit localhost --ask-vault-pass
+Vault password:
+
+PLAY [Clone the private repo] *********************************************************************************************************************************************************************************
+
+TASK [Clone the repo] *****************************************************************************************************************************************************************************************
+[WARNING]: Platform linux on host localhost is using the discovered Python interpreter at /usr/bin/python, but future installation of another Python interpreter could change this. See
+https://docs.ansible.com/ansible/2.9/reference_appendices/interpreter_discovery.html for more information.
+ok: [localhost]
+
+PLAY RECAP ****************************************************************************************************************************************************************************************************
+localhost                  : ok=1    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+
+[ansadmin@ansible-server playbook]$ ls test/
+ansible vault  README.md
+
+
+## Decrypt the password file and see the actual content
+[ansadmin@ansible-server playbook]$ ansible-vault decrypt git_password.yml
+Vault password:
+Decryption successful
+
+[ansadmin@ansible-server playbook]$ cat git_password.yml
+git_password: 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
+
+
+
+
+
+
+
+
+
+

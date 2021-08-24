@@ -1,0 +1,39 @@
+---
+- name: Ansible playbook to run httpd in mutltiple OS Families
+  hosts: all
+  become: true
+  gather_facts: yes
+  tasks:
+    - name: install httpd on RHEL Servers
+      yum:
+        name: httpd
+        state: installed
+      when: ansible_os_family == "RedHat"
+
+    - name: install httpd on DEBIAN Servers
+      apt:
+        name: apache2
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: start httpd service on RHEL Servers
+      service:
+        name: httpd
+        state: started
+      when: ansible_os_family == "RedHat"
+
+    - name: start apache2 service on DEBIAN Servers
+      service:
+        name: apache2
+        state: restarted
+      when: ansible_os_family == "Debian"
+
+    - copy:
+        src: /home/ansadmin/index.html
+        dest: /var/www/html
+
+  Note: Apache2 Server worked in Ubuntu with below changes
+         state: present     (from installed)
+         update_cache: yes   (Its equivalent ansible command for apt-get update mandatory in Ubuntu)
+         state: restarted   (from started)
