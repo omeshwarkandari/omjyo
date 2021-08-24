@@ -1,0 +1,40 @@
+---
+- name: Playbook to create users
+  hosts: all
+  become: true
+  gather_facts: yes
+  vars_files:
+    - /home/ansadmin/playbook/var.yml
+  tasks:
+    - name: User name {{user_name}}
+      user:
+        name : "{{user_name}}"
+    - name: Create a directory
+      file:
+        path: /opt/{{user_name}}_temp
+        state: directory
+        mode: 0755
+        owner: "{{user_name}}"
+
+
+---
+- name: Playbook to remove users
+  hosts: all
+  become: true
+  gather_facts: yes
+  vars_files:
+    - /home/ansadmin/playbook/var.yml
+  tasks:
+    - name: User name {{user_name}}
+      user:
+        name: "{{user_name}}"
+        state: absent
+    - name: Remove the directory
+      file:
+        path: /opt/{{user_name}}_temp
+        state: absent
+
+
+## Create a file var.yml in the location /home/ansadmin/playbook
+$ cat var.yml
+user_name : omesh
