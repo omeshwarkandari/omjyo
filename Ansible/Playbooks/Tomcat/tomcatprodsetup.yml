@@ -1,0 +1,47 @@
+# To make the Playbook re-usable we are calling variable components like tomcat url & package from tomcat_vars.yml file
+# To make it consize by removing the same module for the link file using withitems module.
+
+---
+- name: Playbook to install apache tomcat server
+  hosts: webservers
+  become: true
+  gather_facts: yes
+  vars_files:
+    - tomcat_vars.yml
+  tasks:
+    - name: Install java-1.8*
+      yum:
+        name: java
+        state: installed
+    - name: Download tomcat package
+      get_url:
+        url: "{{ tomcat_url }}"
+        dest: /opt
+        mode: 0755
+
+    - name: Extract tomcat package
+      unarchive:
+        src: /opt/{{tomcat_package}}.tar.gz
+        dest: /opt
+        remote_src: yes
+
+    - name: Change permission on the apache tomcat file
+      file:
+        path: /opt/{{tomcat_package}}
+        mode: 0755
+        recurse: yes
+
+    - name: Create link for tomcat startup.sh file
+      file:
+        src: /opt/{{tomcat_package}}/bin/{{item.tomcat_script}}
+        dest: /usr/local/bin/{{ item.tomcat_cmd }}
+        state: link
+      loop:
+        - { tomcat_script : 'startup.sh', tomcat_cmd : tomcatup }
+        - { tomcat_script: 'shutdown.sh', tomcat_cmd : tomcatdown }
+
+    - name: Start the tomcat service
+      command: nohup ./startup.sh
+      args:
+        chdir: /opt/{{tomcat_package}}/bin
+

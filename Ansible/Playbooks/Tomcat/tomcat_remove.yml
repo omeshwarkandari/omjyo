@@ -1,0 +1,14 @@
+---
+- name: Remove tomcat server
+  hosts: webservers
+  become : yes
+  tasks:
+    - name: Stop the tomcat service
+      shell: ./shutdown.sh
+      args:
+         chdir: /opt/apache-tomcat-8.5.70/bin
+    - name: Remove the tomcat package
+      file:
+        path: /opt/apache-tomcat-8.5.70
+        state: absent
+

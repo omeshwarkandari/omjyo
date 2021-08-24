@@ -1,0 +1,52 @@
+---
+- name: Ansible playbook to install tomcat server
+  hosts: all
+  become: true
+  gather_facts: yes
+  tasks:
+    - name: Downlowd Java
+      yum:
+        name: java-1.8*
+        state: installed
+    - name: Download the tomcat apache package
+      get_url:
+        url: https://downloads.apache.org/tomcat/tomcat-8/v8.5.70/bin/apache-tomcat-8.5.70.tar.gz
+        dest: /opt
+        mode: 0755
+    - name: Extract the package
+      unarchive:
+        src: /opt/apache-tomcat-8.5.70.tar.gz
+        dest: /opt
+        remote_src: yes
+    - name: Change the permission
+      file:
+        path: /opt/apache-tomcat-8.5.70
+        owner: ansadmin
+        mode: 0755
+        recurse: yes
+    - name: Craete a link file for tomcat startup.sh
+      file:
+        src: /opt/apache-tomcat-8.5.70/bin/startup.sh
+        dest: /usr/local/bin/tomcatup
+        state: link
+    - name: Craete a link file for tomcat shutdown.sh
+      file:
+        src: /opt/apache-tomcat-8.5.70/bin/shutdown.sh
+        dest: /usr/local/bin/tomcatdown
+        state: link
+    - name: Start the tomcat service
+      shell: nohup ./startup.sh
+      args:
+        chdir: /opt/apache-tomcat-8.5.70/bin
+        
+
+Steps:
+1. Install pre-requisite i.e. java
+2. Wget Apache packager using module "get_url" in a location and change the permission on tart package
+3. Extract the package using mosule "unarchive" 
+4. Change the permision on the extracted actual package with ownership
+5. Create a link for service start/stop so that it can be executed and /user/location/bin
+   is a executable path "which ls" or "where ls" can be useful to get this path
+6. To ensure service do not exit use module "shell" or "command" with "nohup" with chdir where package is located.
+   Nohup is a command used to run a process(job) on a server and have it continue after you have logged out,
+   otherwise it will lost connection to the server. Nohup is best suited for long job runs.

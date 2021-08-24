@@ -1,0 +1,58 @@
+# Change the default connector port 8080 to 8082 by editing the file server.xml a
+# Add access roles in tomcat-users.xml and disbale only 127.0.0.1 access in context.xml
+# Use handler to restart the service on notoification
+
+---
+- name: Playbook to install apache tomcat server
+  hosts: webservers
+  become: true
+  gather_facts: yes
+  vars_files:
+    - tomcat_vars.yml
+  tasks:
+    - name: Install java-1.8*
+      yum:
+        name: java
+        state: installed
+    - name: Download tomcat package
+      get_url:
+        url: "{{ tomcat_url }}"
+        dest: /opt
+        mode: 0755
+    - name: Extract tomcat package
+      unarchive:
+        src: /opt/{{tomcat_package}}.tar.gz
+        dest: /opt
+        remote_src: yes
+    - name: Change permission on the apache tomcat directory
+      file:
+        path: /opt/{{tomcat_package}}
+        mode: 0755
+        recurse: yes
+    - name: Create link for tomcat startup.sh file
+      file:
+        src: /opt/{{tomcat_package}}/bin/{{item.tomcat_script}}
+        dest: /usr/local/bin/{{ item.tomcat_cmd }}
+        state: link
+      loop:
+        - { tomcat_script : 'startup.sh', tomcat_cmd : tomcatup }
+        - { tomcat_script: 'shutdown.sh', tomcat_cmd : tomcatdown }
+      notify: start tomcat
+    - name: Change the default prot
+      copy:
+        src: server.xml
+        dest: /opt/{{tomcat_package}}/conf/server.xml
+    - name: Add roles to access Server Status/Manager App/Host Manager
+      copy:
+        src: tomcat-users.xml
+        dest: /opt/apache-tomcat-8.5.70/conf
+    - name: Enable access to tomcat from outside
+      copy:
+        src: context.xml
+        dest: /opt/apache-tomcat-8.5.70/webapps/manager/META-INF
+      notify: restart tomcat
+  handlers:
+    - name: start tomcat
+      shell: nohup /usr/local/bin/tomcatup
+    - name: restart tomcat
+      shell: /usr/local/bin/tomcatdown; nohup /usr/local/bin/tomcatup         
