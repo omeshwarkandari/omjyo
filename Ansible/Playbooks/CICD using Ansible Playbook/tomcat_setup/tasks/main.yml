@@ -1,0 +1,57 @@
+---
+# tasks file for tomcat_setup
+- name: Create a user
+  user:
+    name: "{{user_name}}"
+- name: Install java-1.8*
+  yum:
+    name: java
+    state: installed
+- name: Download tomcat package
+  get_url:
+    url: "{{ tomcat_url }}"
+    dest: /opt
+    mode: 0755
+
+- name: Extract tomcat package
+  unarchive:
+    src: /opt/{{tomcat_package}}.tar.gz
+    dest: /opt
+    remote_src: yes
+
+- name: Change permission on the apache tomcat directory
+  file:
+    path: /opt/{{tomcat_package}}
+    mode: 0755
+    recurse: yes
+
+- name: Create link for tomcat startup.sh file
+  file:
+    src: /opt/{{tomcat_package}}/bin/{{item.tomcat_script}}
+    dest: /usr/local/bin/{{ item.tomcat_cmd }}
+    state: link
+  loop:
+    - { tomcat_script : 'startup.sh', tomcat_cmd : tomcatup }
+    - { tomcat_script: 'shutdown.sh', tomcat_cmd : tomcatdown }
+  notify: start tomcat
+
+- name: Change the default connection port
+  copy:
+    src: server.xml
+    dest: /opt/{{tomcat_package}}/conf/server.xml
+
+- name: Add roles to access Server Status/Manager App/Host Manager
+  copy:
+    src: tomcat-users.xml
+    dest: /opt/apache-tomcat-8.5.70/conf
+
+- name: Enable access to tomcat from outside
+  copy:
+    src: context.xml
+    dest: /opt/apache-tomcat-8.5.70/webapps/manager/META-INF
+
+- name: Deploy/copy artifact on the tomcat
+  copy:
+    src: webapp.war
+    dest: /opt/apache-tomcat-8.5.70/webapps
+  notify: restart tomcat

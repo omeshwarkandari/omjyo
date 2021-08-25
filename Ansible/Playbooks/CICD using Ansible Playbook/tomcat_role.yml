@@ -1,0 +1,8 @@
+---
+- name: Playbook to install apache tomcat server
+  hosts: tomcat
+  become: true
+  gather_facts: yes
+
+  roles:
+    - tomcat_setup
