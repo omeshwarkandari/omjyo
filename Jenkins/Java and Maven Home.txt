@@ -6,6 +6,13 @@ $ find /usr/lib/jvm/java-1.8* | head -n 3
 ( It helps in providing the right Java path)
 
 $ nano ~/.bash_profile
+
+M2_HOME=/opt/maven/apache-maven-3.6.3
+M2=/opt/maven/apache-maven-3.6.3/bin
+JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.282.b08-1.amzn2.0.1.x86_64
+PATH=$PATH:$HOME/bin:$JAVA_HOME:$M2_HOME:$M2
+export PATH
+or
 JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.282.b08-1.amzn2.0.1.x86_64
 export JAVA_HOME=$JAVA_HOME
 export PATH=$PATH:$JAVA_HOME/bin
