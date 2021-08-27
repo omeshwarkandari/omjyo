@@ -1,4 +1,4 @@
-Docker Network:
+Docker Networking:
 How Docker Host & conatiners communicate?
 How containesr communicate in a single network?
 Container Isolation in seperate nework?
