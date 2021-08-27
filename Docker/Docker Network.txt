@@ -1,4 +1,9 @@
-How conatiners communicate?
+Docker Network:
+How Docker Host & conatiners communicate?
+How containesr communicate in a single network?
+Container Isolation in seperate nework?
+How container communicate with oustide world?
+
 Containers communicate with each other using the docker networks. Docker engine creates default bridge network with a gateway to communicate with the containers.
 
 1. Create an EC2 Machine and swicth as root user.
