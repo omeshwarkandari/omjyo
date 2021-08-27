@@ -1,0 +1,172 @@
+How conatiners communicate?
+Containers communicate with each other using the docker networks. Docker engine creates default bridge network with a gateway to communicate with the containers.
+
+1. Create an EC2 Machine and swicth as root user.
+
+2. Install docker engine 
+$ yum install docker
+$ service docker start
+
+List the default netowrks drivers: 
+$ docker network ls
+NETWORK ID     NAME      DRIVER    SCOPE
+ae9bc9fe3985   bridge    bridge    local
+07310c4b1664   host      host      local
+e41b5ca7cc09   none      null      local
+$ ifconfig 
+(it will display two networks: etho (host network interface) & docker0 (default bridge network to connect all the conatiners within this host)
+
+Create container: docker run -it --name <custom image name> <image-name> /bin/bash
+e.g. docker run -it --name nginx123 nginx /bin/bash or docker run -it --name myimage centos /bin/bash
+$ docker run -it --name mynginx nginx bash
+Use ctrl+p & ctrl+q to come out of bash sheel without exiting the container process and run ifconfig from the docker host
+$ ifconfig (in additon to eth0 & docker0 a new interface veth a Virtual Network Interface is created for each container)
+$ docker inspect network <conatiner ID> (this will provide detailed info of the container including below under "NetworkSettings" )
+type: Bridge, Gateway: <ip address>, container IP Address: <ip address> 
+Gateway ip address: This is how the Docker host <private ip address of the ec2> on eth0 interface communicates with container <ip address> on veth interface.
+e.g. EC2 Private ip address= 	, Gateway= 172.17.0.2 and Container ip = 172.17.0.2 then we can ping 172.17.0.2 from host ip (172.31.88.52) and vice-versa as well as any other conatiner in the same network.
+
+How to run ifconfig/ping from conatiner bash shell:  $ apt update, $ apt install net-tools -y and $ apt install iputils-ping -y
+
+How to Expose a conatiner to the outside world:
+Docker host can communicate with containesr using gateway, containers within same netwwork subnet can communicate using the default bridge or installed network drivers, outdied world can communicate with
+the docker host using the public ip address, however, to make outside world communicate with conatiners we need to expose port of the conatiners.
+By default a container has port 80 open to outside world which can be mapped to host port.
+e.g. $ docker run -it --name mynginx nginx bash will create a ngnix webserver but we can not browse it even while the nginx service is runing inside the container.
+
+
+How to check nginx seervice inside the conatiner.
+[root@tomcat-server ~]# docker run -it --name testnginx nginx /bin/bash
+root@6173a45e508f:/# curl localhost
+curl: (7) Failed to connect to localhost port 80: Connection refused
+root@6173a45e508f:/# /etc/init.d/nginx status   (we can also use "service nginx status/start")
+[FAIL] nginx is not running ... failed!
+root@6173a45e508f:/# /etc/init.d/nginx start
+root@6173a45e508f:/# /etc/init.d/nginx status
+[ ok ] nginx is running.
+root@6173a45e508f:/# curl localhost
+127.0.0.1 - - [27/Aug/2021:04:15:15 +0000] "GET / HTTP/1.1" 200 612 "-" "curl/7.64.0" "-"
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+
+Access the service using http://34.227.31.182 (Public ip of EC2) will display page not found or site not accessible error although nginx is runing inside container with default port 80.
+
+
+How to expose the service: we need to port forward e.g. with 8080 of host docker so open the access for 8080 on the SG of the EC2 Docker host and recreate the container.
+[root@tomcat-server ~]# docker run -it --name testnginx -p 8080:80 nginx /bin/bash
+root@ce88ad74047c:/# service nginx status
+[FAIL] nginx is not running ... failed!
+$ service nginx start
+Now we can browse the nginx webpage on http://34.227.31.182:8080/
+Note: Docker Host port (8080):(80) Container Port both are varibale depending on the application script/security.
+
+
+Containers in a netowrk are isolated from the containers in another network:
+Lets create a conatiner with default bridge network: $ docker run -it --name nginx123 nginx /bin/bash & $ docker inspect network <cont id> 
+e.g. it creates a conatiner@ 172.17.0.2 , gateway@ 172.17.0.1 on the default network subnet@ 172.17.0.0/16
+
+Lets create another conatiner with network subnet 192.168.0.0/16: use the syntax "docker network create --driver=bridge --subnet=192.168.0.0/16 br0"
+$ docker network create --driver=bridge --subnet=192.168.0.0/16 192network (create our own network named e.g. "192network"vrather than "bro" in the 192.168.0.0 subnet)
+$  docker network ls
+NETWORK ID     NAME         DRIVER    SCOPE
+519e376a59e7   192network   bridge    local
+ae9bc9fe3985   bridge       bridge    local
+07310c4b1664   host         host      local
+e41b5ca7cc09   none         null      local
+
+Create a conatiner in 192network and get the container & gateway ip address.
+$ docker run -it --net=192network --name nginx345 nginx /bin/bash & $ docker inspect network <ID of the conatiner in 192network>
+e.g. it creates a conatiner@192.168.0.2, gateway@192.168.0.1 on the subnet@192.168.0.0/16
+
+Test the communication: Exec into either conatiner and we will observe that niether 72.17.0.2 will ping 192.168.0.2 nor 192.168.0.2 will ping 72.17.0.2.
+
+Note: By default if gateway is not passed the first ip of the subnet will be gateway ip address and next ip will be the first conatiner ip address.
+
+Create network with prescrobed ip range and gateway ip address: Synytax "docker network create --driver=bridge --subnet=<ip-range/xx> --ip-range=<ip-range/xx> --gateway=<ip-address> br0"
+$ docker network create --driver=bridge --subnet=192.168.0.0/16 --ip-range=192.168.4.0/20 --gateway=192.168.4.6 mynetwork
+$ docker network ls
+NETWORK ID     NAME        DRIVER    SCOPE
+ae9bc9fe3985   bridge      bridge    local
+07310c4b1664   host        host      local
+fbc4b9f2b167   mynetwork   bridge    local
+e41b5ca7cc09   none        null      local
+$ docker inspect network ae9bc9fe3985
+"Config": [
+                {
+                    "Subnet": "192.168.0.0/16",
+                    "IPRange": "192.168.4.0/20",
+                    "Gateway": "192.168.4.6"
+                }
+            ]
+$ docker run -it --network=mynetwork --name nginx789 nginx bash
+$ docker inspecet network <cont ID>  (Here the ip address is the first ip of the subnet 192.168.0.0/16 because gateway is already defined)
+	"Gateway": "192.168.4.6",
+        "IPAddress": "192.168.0.1",
+Note: we can not create 192network and mynetwork together in same host because it will error out with ip-range conflict.
+We can run another application using host port 8081 as 8080 is already in use.
+$ docker run -it --network=mynetwork --name nginx1 -p 8081:80 nginx bash
+http://34.227.31.182:8081/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
