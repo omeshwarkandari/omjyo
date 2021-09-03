@@ -1,0 +1,123 @@
+
+
+Create an EC2 system T3.medium:
+
+$ sudo su -
+$ apt update
+$ nano /etc/hosts (replace ip address with host name)
+
+Install Docker Engine:
+
+Remove if any docker installation:
+sudo apt-get remove docker docker-engine docker.io containerd runc
+
+Supported storage drivers:
+Docker Engine on Ubuntu supports overlay2, aufs and btrfs storage drivers.
+Docker Engine uses the overlay2 storage driver by default. If you need to use aufs instead, you need to configure it manually. See use the AUFS storage driver
+
+Installation methods
+You can install Docker Engine in different ways, depending on your needs:
+Most users set up Docker’s repositories and install from them, for ease of installation and upgrade tasks. This is the recommended approach.
+Some users download the DEB package and install it manually and manage upgrades completely manually. This is useful in situations such as installing Docker on air-gapped systems with no access to the internet.
+In testing and development environments, some users choose to use automated convenience scripts to install Docker.
+
+Install using the repository:
+Before you install Docker Engine for the first time on a new host machine, you need to set up the Docker repository. Afterward, you can install and update Docker from the repository.
+Set up the repository: Update the apt package index and install packages to allow apt to use a repository over HTTPS.
+
+ sudo apt-get update
+ sudo apt-get install \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    gnupg \
+    lsb-release
+< sudo apt-get install apt-transport-https ca-certificates curl gnupg lsb-release >
+
+Add Docker’s official GPG key:
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+Use the following command to set up the stable repository.
+echo \
+  "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+< echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null >
+
+Install Docker Engine:
+Update the apt package index, and install the latest version of Docker Engine and containerd, or go to the next step to install a specific version:
+
+ sudo apt-get update
+ sudo apt-get install docker-ce docker-ce-cli containerd.io
+
+Configure the Docker daemon, in particular to use systemd for the management of the container’s cgroups.
+cd /etc/docker and run below (If no docker dir then sudo mkdir /etc/docker)
+
+cat <<EOF | sudo tee /etc/docker/daemon.json
+{
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m"
+  },
+  "storage-driver": "overlay2"
+}
+EOF
+
+Note: overlay2 is the preferred storage driver for systems running Linux kernel version 4.0 or higher, or RHEL or CentOS using version 3.10.0-514 and above.
+Restart Docker and enable on boot:
+
+sudo systemctl enable docker
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+
+
+Now add Kubernetes repository for Debian/Ubuntu:
+
+sudo apt-get update
+sudo apt-get install -y apt-transport-https ca-certificates curl
+
+Download the Google Cloud public signing key:
+sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+Add the Kubernetes apt repository:
+
+echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+Update apt package index, install kubelet, kubeadm and kubectl, and pin their version:
+
+sudo apt-get update
+sudo apt-get install -y kubelet kubeadm kubectl
+
+Initialize the Master Kubernetes:
+
+kubeadm init --apiserver-advertise-address=172.31.92.168 --pod-network-cidr=192.168.0.0/16
+( Read the instruction which says that run the kubectl or access the cluster using a normal user and root is not recommended)
+
+Create a noram user: e.g. "kubeadm"
+useradd kubeadm & set the password: passwd kubeadm , also add the user in /etc/sudoers file using "visudo" command.
+Note: Users in ubuntu unlike in Centos/Amzon linux does not have a home folder "$HOME" created by default so we need to create $HOME.
+root$ mkdir /home/kubeadm and craete a directory .kube to copy admin.conf so cd /home/kubeadm & create a dir .kube 
+root$ cp -i /etc/kubernetes/admin.conf /home/kubeadm/.kube/config
+root$ chown -R kubeadm:kubeadm /home/kubeadm/.kube/config
+Login as kubeadm:
+check the cluster status: kubectl cluster-info etc.
+Note: We can copy the admin.conf in our local system as well to connect the cluster.
+
+Add a POD network and DNS services:
+
+curl https://docs.projectcalico.org/manifests/calico-typha.yaml -o calico.yaml
+
+kubectl apply -f calico.yaml
+
+
+Join Nodes:
+
+
+
+
+
+
+
+
+
+
+
+
