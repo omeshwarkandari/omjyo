@@ -1,0 +1,89 @@
+## Package manager for eepl is "def" in RHEL8/Centos8 while its "yum" in RHEL7/Centos7 or prior versions.
+
+---
+- name: install jenkins
+  hosts: jenkins
+  become: true
+  gather_facts: no
+
+  tasks:
+  - name: Install packages
+    yum:
+      name: ['git', 'wget', 'java-1.8.0-openjdk']
+      state: installed
+  
+  - name: downloading jenkins repo
+    get_url:
+      url: https://pkg.jenkins.io/redhat-stable/jenkins.repo
+      dest: /etc/yum.repos.d/jenkins.repo
+
+  - name: adding jenkins key
+    rpm_key:
+      state: present
+      key: https://pkg.jenkins.io/redhat-stable/jenkins.io.key
+
+  - rpm_key:
+      state: present
+      key: https://rpms.remirepo.net/RPM-GPG-KEY-remi2018
+
+  - rpm_key:
+      state: present
+      key: https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-8
+
+  - name: Install epel repo.
+    dnf:
+      name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm"
+      state: present
+
+  - name: Ensure EPEL repo is enabled
+    ini_file:
+      dest: /etc/yum.repos.d/epel.repo
+      section: epel
+      option: enabled
+      value: '1'
+
+  - name: epel
+    dnf:
+      name: epel-release
+      state: installed
+
+  - name: Install jenkins
+    yum:
+      name: jenkins
+      state: installed
+
+  - name: Start & enable jenkins
+    service:
+      name: jenkins
+      state: started
+      enabled: true
+
+  - name: Sleep for 30 seconds & continue with Play
+    wait_for: timeout=30
+
+  - name: Get init password Jenkins
+    shell: cat /var/lib/jenkins/secrets/initialAdminPassword
+    changed_when: false
+    register: result
+
+  - name: Get init password for jenkins
+    debug:
+      var: result.stdout
+
+  - name: Download maven package
+    get_url:
+      url: https://downloads.apache.org/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
+      dest: /opt
+      mode: 0755
+
+  - name: Extract maven package
+    unarchive:
+      src: /opt/apache-maven-3.6.3-bin.tar.gz
+      dest: /opt
+      remote_src: yes
+
+  - name: Change permission on maven directory
+    file:
+      path: /opt/apache-maven-3.6.3
+      owner: ansadmin
+      mode: 0755
