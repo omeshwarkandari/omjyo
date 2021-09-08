@@ -1,4 +1,5 @@
 ## Package manager for eepl is "def" in RHEL8/Centos8 while its "yum" in RHEL7/Centos7 or prior versions.
+## Docker needs to be installed as RHEL suppirt equivalen podman service and yum install -y docker installs podman only
 
 ---
 - name: install jenkins
