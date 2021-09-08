@@ -1,0 +1,79 @@
+---
+- name: Playbbok to install jenkins with Java/Maven/Git on Centos 7 & centos 8 by EPEL-8/ latest-8
+  hosts: jenkins
+  become: true
+  gather_facts: no
+
+  tasks:
+  - name: install java
+    yum:
+      name: java-1.8.0-openjdk
+      state: installed
+
+  - name: install wget
+    yum:
+      name: wget
+      state: installed
+
+  - name: downloading jenkins repo
+    get_url:
+      url: https://pkg.jenkins.io/redhat-stable/jenkins.repo
+      dest: /etc/yum.repos.d/jenkins.repo
+
+  - name: adding jenkins key
+    rpm_key:
+      state: present
+      key: https://pkg.jenkins.io/redhat-stable/jenkins.io.key
+
+  - name: Install epel repo.
+    yum:
+      name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm"
+      state: present
+
+  - name: Ensure EPEL repo is enabled
+    ini_file:
+      dest: /etc/yum.repos.d/epel.repo
+      section: epel
+      option: enabled
+      value: '1'
+
+  - name: Install jenkins
+    yum:
+      name: jenkins
+      state: installed
+
+  - name: Start & enable jenkins
+    service:
+      name: jenkins
+      state: started
+      enabled: true
+
+  - name: Sleep for 30 seconds & continue with Play
+    wait_for: timeout=30
+
+  - name: Get init password Jenkins
+    shell: cat /var/lib/jenkins/secrets/initialAdminPassword
+    changed_when: false
+    register: result
+
+  - name: Get init password for jenkins
+    debug:
+      var: result.stdout
+
+  - name: Download maven package
+    get_url:
+      url: https://downloads.apache.org/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
+      dest: /opt
+      mode: 0755
+
+  - name: Extract maven package
+    unarchive:
+      src: /opt/apache-maven-3.6.3-bin.tar.gz
+      dest: /opt
+      remote_src: yes
+
+  - name: Change permission on maven directory
+    file:
+      path: /opt/apache-maven-3.6.3
+      owner: ansadmin
+      mode: 0755
