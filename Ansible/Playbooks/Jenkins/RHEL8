@@ -9,7 +9,7 @@
   tasks:
   - name: Install packages
     yum:
-      name: ['git', 'wget', 'java-1.8.0-openjdk']
+      name: ['git', 'wget', 'java-1.8*']
       state: installed
   
   - name: downloading jenkins repo
