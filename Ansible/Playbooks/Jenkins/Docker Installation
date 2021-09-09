@@ -1,0 +1,6 @@
+$ yum install -y docker
+$ docker --version
+$ service docker status ( Docker service not runing)
+$ service docker start
+$ chkconfig docker on
+
