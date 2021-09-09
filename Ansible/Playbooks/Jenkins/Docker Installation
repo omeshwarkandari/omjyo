@@ -3,4 +3,12 @@ $ docker --version
 $ service docker status ( Docker service not runing)
 $ service docker start
 $ chkconfig docker on
+$ groupadd docker
+$ grep docker /etc/group  ---> docker:x:990:
+$ usermod -aG docker jenkins
+$ grep docker /etc/group  --->  docker:x:990:jenkins  ( user jenkins also added to the docker group to create image/conatiners)
+$ su - jenkins ( login as jenkins to verify)
+$ docker ps  --->  CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+
+
 
