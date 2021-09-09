@@ -5,14 +5,10 @@
   gather_facts: no
 
   tasks:
-  - name: install java
-    yum:
-      name: java-1.8.0-openjdk
-      state: installed
 
-  - name: install wget
+  - name: Install packages
     yum:
-      name: wget
+      name: ['git', 'wget', 'java-1.8*', 'curl']
       state: installed
 
   - name: downloading jenkins repo
