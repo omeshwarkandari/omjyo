@@ -4,9 +4,9 @@
   become: true
   gather_facts: yes
   tasks:
-    - name: Install Java
+    - name: Install Java & other repo
       yum:
-        name: ['java-1.8.0-openjdk','wget']
+        name: ['java-1.8.0-openjdk','wget', 'git', 'curl']
         state: installed
 
     - name: Download jenkins repo
