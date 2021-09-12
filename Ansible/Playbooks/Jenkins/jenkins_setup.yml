@@ -41,3 +41,21 @@
     - name: Get init password for jenkins
       debug:
         var: result.stdout
+    
+    - name: Download maven package
+      get_url:
+      url: https://downloads.apache.org/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
+      dest: /opt
+      mode: 0755
+
+   - name: Extract maven package
+     unarchive:
+      src: /opt/apache-maven-3.6.3-bin.tar.gz
+      dest: /opt
+      remote_src: yes
+
+    - name: Change permission on maven directory
+      file:
+       path: /opt/apache-maven-3.6.3
+       owner: ansadmin
+       mode: 0755
