@@ -7,10 +7,8 @@ Install Jenkins Server using Ansible Playbook "jenkins_setup.yml"
   (sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat/jenkins.repo)
   
 – Import Jenkins Key: Import Jenkins’ rpm key.
-  (sudo rpm --import https://pkg.jenkins.io/redhat/jenkins.io.key)
-  
-– Install Jenkins: refer to Install Jenkins.
-  
+  (sudo rpm --import https://pkg.jenkins.io/redhat/jenkins.io.key)  
+
 – Start & Enable Jenkins: Set startup and automatic startup of Jenkins.
 
 – Sleep for 30 seconds and continue with play: Wait 30 seconds for the service to start completely.
