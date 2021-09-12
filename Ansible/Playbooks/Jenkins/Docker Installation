@@ -10,5 +10,6 @@ $ grep docker /etc/group  --->  docker:x:990:jenkins  ( user jenkins also added 
 $ su - jenkins ( login as jenkins to verify)
 $ docker ps  --->  CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
 
-
-
+Also provider user jenkins the sudo access and Shell access:
+$ visudo and add jenkins with nopassword access
+$ vi /etc/passwd and change jenkins:x:994:992:Jenkins Automation Server:/var/lib/jenkins:/bin/false to jenkins:x:994:992:Jenkins Automation Server:/var/lib/jenkins:/bin/bash
