@@ -42,3 +42,5 @@ $ helm install <release-name> <repo-name>   ( Release name is optional to be be 
 $ helm uninstall <release-name> <repo-name> 
 $ helm search repo <repo-name> 
 $ helm inspect values <repo-name>  > <a file>
+$ history | grep -i inspect
+
