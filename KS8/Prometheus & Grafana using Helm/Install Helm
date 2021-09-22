@@ -1,0 +1,44 @@
+Helm Charts can be used to manage Kubernetes Cluster from a remote system:
+
+Pre-requisites:
+1) Kubernetes Cluster --- Refer to Kubeadm on Ubuntu
+2) Remote system (This example is foe Linux OS but we can also manage through Windows system) --- Refer to Jenkins Server
+3) Copy kubernetes configuration from the Master Server to the remote server to help helm interact with the Cluster.
+ 
+ Login to the Kubernets Master: 
+ root# cat /etc/kubernetes/admin.conf and copy the configuration
+ 
+ Login to the local system e.g. Jenkins server:
+ root# su - jenkins
+ -bash-4.2$ mkdir .kube
+ -bash-4.2$ chown -R jenkins:jenkins .kube/
+ -bash-4.2$ nano .kube/config and paste the config file
+
+Install Stable Helm: Helm v3
+(Helm Version 3 does not need tiller component to manage the cluster while Helm2 needs a client side component Tiller to be installed in the Cluster Masetr Node)
+$ curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+$ chmod 700 get_helm.sh
+Get a latesr version or 
+$ ./get_helm.sh
+Get a desired version: Login as root and run the command $./get_helm.sh -v <version name> 
+e.g.
+[root@jenkins ~]#./get_helm.sh -v v3.6.3
+or
+[root@jenkins ~]#./get_helm.sh -v v3.2.1
+Check the helm version: $ helm version using both root as well as local user e.g. jenkins in our example.
+
+Add a stable version:
+helm repo add stable https://charts.helm.sh/stabl
+or
+helm repo add stable https://charts.helm.sh/stable --force-update
+
+Check the Helm version: Login with root.
+# helm version   ---> version.BuildInfo{Version:"v3.2.1", GitCommit:"fe51cd1e31e6a202cba7dead9552a6d418ded79a", GitTreeState:"clean", GoVersion:"go1.13.10"}
+# helm   ---> This will display helm command and help.
+
+Other Commands:
+$ helm list
+$ helm install <release-name> <repo-name>   ( Release name is optional to be be given by user else it might assign some random name)
+$ helm uninstall <release-name> <repo-name> 
+$ helm search repo <repo-name> 
+$ helm inspect values <repo-name>  > <a file>
