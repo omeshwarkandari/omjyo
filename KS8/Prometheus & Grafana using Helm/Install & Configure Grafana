@@ -80,6 +80,14 @@ prometheus-server               NodePort       10.98.46.182     <none>        80
 Browse the grafana dashborad: http://<Public-IP of Node>:32500
 user: admin and password: as set
 
+Grafana Dashboard: 
+Add your data source:
+Add Prometheus with the url http://<server ip>:port e.g. http://3.85.233.168:30835 and not http://3.85.233.168:30835/ as / is generating error.
+Save it with a name and status will change as complete
+Add a dashborad: Either create a custom dashboard or import from the Kubernetes-Grafana dashboards.
+Import a Dashborad:
+Select an appropriate dashboard over the google and down the json file
+Click on + and Import then upload the json file using the option Upload JSON File , select the prometheus as datasourec and save the dashboard.
 
 
 
