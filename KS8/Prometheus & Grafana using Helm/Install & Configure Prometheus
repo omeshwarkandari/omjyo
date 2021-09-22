@@ -82,6 +82,12 @@ NOTES:
 The Prometheus server can be accessed via port 80 on the following DNS name from within your cluster:
 prometheus-server.default.svc.cluster.local ........
 
+$ helm list    (This will show prometheus alongwith petclinic-app deployed using the docker image)
+NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
+petclinic-app   default         1               2021-09-20 16:20:51.325928071 +0000 UTC deployed        petclinic-0.1.0         1.0
+prometheus      default         1               2021-09-22 11:27:43.189991899 +0000 UTC deployed        prometheus-14.7.1       2.26.0
+
+
 Now Go to the Kubernetes Master Server:
 $ kubectl get all  ---> This will display all the prometheus components svc/deployments/pods
 $ kubectl get svc  ---> Prometheus Server is using service NodePort and exposed at port 30835
