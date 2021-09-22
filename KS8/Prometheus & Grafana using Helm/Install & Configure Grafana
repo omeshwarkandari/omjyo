@@ -5,3 +5,23 @@ stable/grafana                                  5.5.7           7.1.1           
 prometheus-community/kube-prometheus-stack      18.0.12         0.50.0          kube-prometheus-stack collects Kubernetes manif...
 prometheus-community/prometheus-druid-exporter  0.11.0          v0.8.0          Druid exporter to monitor druid metrics with Pr...
 
+
+or 
+$ helm repo add grafana https://grafana.github.io/helm-charts
+$ helm search repo grafana
+
+
+## Expose the grafana service to be accessed from outside the cluster (LoadBalancer service).
+## or access it from within the cluster (ClusterIP service). Set the service type and the port to serve it.
+## ref: http://kubernetes.io/docs/user-guide/services/
+##
+service:
+  enabled: true
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+    # targetPort: 4181 To be used with a proxy extraContainer
+  annotations: {}
+  labels: {}
+  portName: service
+
