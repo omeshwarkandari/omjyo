@@ -106,6 +106,13 @@ prometheus-server-57cc5ffc74-bdfkm               2/2     Running   0            
 
 Browse the Prometheus Dashborad: http://<PUBLIC-IP of Node-1>:30835
 
+Daemonset: node-exporter is the agent for scrapping metrics from a pod so it is deployed as ds
+$ kubectl get ds
+NAME                                      DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
+daemonset.apps/prometheus-node-exporter   2         2         2       2            2           <none>          107m
+
+Replicaset Deployment: Alert Manger and Prometheus Server
+
 
 
 
