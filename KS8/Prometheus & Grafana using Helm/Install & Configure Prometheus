@@ -3,6 +3,7 @@ Customized Prometheus is installed using Helm Repository
 1. Add the Heelm repo as suggested by the Helm Community "https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack#kube-prometheus-stack"
 $ helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 $ helm repo update
+( Also we can get the available repo for prometheus by runing $ helm search repo prometheus )
 2. View the repos:
 $ helm repo list
 NAME                    URL
