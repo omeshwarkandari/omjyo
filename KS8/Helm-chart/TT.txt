@@ -1,0 +1,1 @@
+helm inspect values prometheus-community/prometheus > test/prometheus.values
