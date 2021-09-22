@@ -1,0 +1,112 @@
+Customized Prometheus is installed using Helm Repository
+
+1. Add the Heelm repo as suggested by the Helm Community "https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack#kube-prometheus-stack"
+$ helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+$ helm repo update
+2. View the repos:
+$ helm repo list
+NAME                    URL
+stable                  https://charts.helm.sh/stable
+prometheus-community    https://prometheus-community.github.io/helm-charts
+3. Search the repo contents to identify exact repo: "helm search repo <Repo NAME>"
+e.g. $ helm search repo prometheus-community
+NAME                                                    CHART VERSION   APP VERSION     DESCRIPTION
+prometheus-community/alertmanager                       0.12.2          v0.22.1         The Alertmanager handles alerts sent by client ...
+prometheus-community/kube-prometheus-stack              18.0.12         0.50.0          kube-prometheus-stack collects Kubernetes manif...
+prometheus-community/kube-state-metrics                 3.5.1           2.2.0           Install kube-state-metrics to generate and expo...
+prometheus-community/prometheus                         14.7.1          2.26.0          Prometheus is a monitoring system and time seri...
+prometheus-community/prometheus-adapter                 2.17.0          v0.9.0          A Helm chart for k8s prometheus adapter
+prometheus-community/prometheus-blackbox-exporter       5.0.3           0.19.0          Prometheus Blackbox Exporter
+prometheus-community/prometheus-cloudwatch-expo...      0.16.0          0.10.0          A Helm chart for prometheus cloudwatch-exporter
+prometheus-community/prometheus-consul-exporter         0.4.0           0.4.0           A Helm chart for the Prometheus Consul Exporter
+prometheus-community/prometheus-couchdb-exporter        0.2.0           1.0             A Helm chart to export the metrics from couchdb...
+prometheus-community/prometheus-druid-exporter          0.11.0          v0.8.0          Druid exporter to monitor druid metrics with Pr...
+prometheus-community/prometheus-elasticsearch-e...      4.6.1           1.2.1           Elasticsearch stats exporter for Prometheus
+prometheus-community/prometheus-kafka-exporter          1.5.0           v1.4.1          A Helm chart to export the metrics from Kafka i...
+prometheus-community/prometheus-mongodb-exporter        2.8.1           v0.10.0         A Prometheus exporter for MongoDB metrics
+prometheus-community/prometheus-mysql-exporter          1.2.2           v0.12.1         A Helm chart for prometheus mysql exporter with...
+prometheus-community/prometheus-nats-exporter           2.8.0           0.8.0           A Helm chart for prometheus-nats-exporter
+prometheus-community/prometheus-node-exporter           2.1.0           1.2.2           A Helm chart for prometheus node-exporter
+prometheus-community/prometheus-operator                9.3.2           0.38.1          DEPRECATED - This chart will be renamed. See ht...
+prometheus-community/prometheus-pingdom-exporter        2.4.1           20190610-1      A Helm chart for Prometheus Pingdom Exporter
+prometheus-community/prometheus-postgres-exporter       2.3.6           0.10.0          A Helm chart for prometheus postgres-exporter
+prometheus-community/prometheus-pushgateway             1.11.0          1.3.0           A Helm chart for prometheus pushgateway
+prometheus-community/prometheus-rabbitmq-exporter       1.0.0           v0.29.0         Rabbitmq metrics exporter for prometheus
+prometheus-community/prometheus-redis-exporter          4.6.0           1.27.0          Prometheus exporter for Redis metrics
+prometheus-community/prometheus-snmp-exporter           0.1.4           0.19.0          Prometheus SNMP Exporter
+prometheus-community/prometheus-stackdriver-exp...      1.10.0          0.11.0          Stackdriver exporter for Prometheus
+prometheus-community/prometheus-statsd-exporter         0.4.0           0.22.1          A Helm chart for prometheus stats-exporter
+prometheus-community/prometheus-to-sd                   0.4.0           0.5.2           Scrape metrics stored in prometheus format and ..
+
+We will use "prometheus-community/prometheus" to install the prometheus server and before installing it can be customized.
+We can install prometheus server using $ helm install <release-name> prometheus-community/prometheus which will create the prometheus:
+ - All the services Type:ClusterIP (This means we can not access the prometheus metrics from oustide as it will be accessible only on the "localhost:9090"
+ - Prometheus-Server might not intialize as default config is using Permanet Volume Mounts which are not configured for our Demo Cluster rather we are suing EmptyDir.
+$ mkdir test (Craete a directory and ensure the logi user has owner permission)
+$ helm inspect values prometheus-community/prometheus > test/prometheus.values (Copy the values of prometheus default configuartion to a file prometheus.values)
+Edit the configuration inside the "prometheus.values"
+$ vi test/prometheus.values
+
+Search type by /type and n to scroll to fine the Promotheus Server Service configuration
+## List of IP addresses at which the Prometheus server service is available
+## Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
+## List of IP addresses at which the Prometheus server service is available
+## Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
+    externalIPs: []
+    loadBalancerIP: ""
+    loadBalancerSourceRanges: []
+    servicePort: 80
+    sessionAffinity: None
+    type: ClusterIP
+Change the type to NodePort with an unused port number from 30000-32767
+    type: NodePort
+    NodePort: 32323
+
+ Search the PersistentVolume and if enable: true then make it false so that prometheus do not search for PV rather use default Emptydir voulme mount.
+  persistentVolume:
+    ## If true, pushgateway will create/use a Persistent Volume Claim
+    ##
+    enabled: false
+
+ Save the configuration and install helm using the new values.
+ $ helm install <release-name> <repo-name> --values <new values file> --namespace <desired namespace> 
+Lets use rlaese-name as prometheus and default namespace
+ $ helm install prometheus prometheus-community/prometheus --values test/prometheus.values 
+NAME: prometheus
+LAST DEPLOYED: Wed Sep 22 11:27:43 2021
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+The Prometheus server can be accessed via port 80 on the following DNS name from within your cluster:
+prometheus-server.default.svc.cluster.local ........
+
+Now Go to the Kubernetes Master Server:
+$ kubectl get all  ---> This will display all the prometheus components svc/deployments/pods
+$ kubectl get svc  ---> Prometheus Server is using service NodePort and exposed at port 30835
+NAME                            TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+kubernetes                      ClusterIP      10.96.0.1        <none>        443/TCP          18d
+petclinic-service               LoadBalancer   10.97.111.141    <pending>     8080:32750/TCP   44h
+prometheus-alertmanager         ClusterIP      10.105.121.16    <none>        80/TCP           98m
+prometheus-kube-state-metrics   ClusterIP      10.96.242.163    <none>        8080/TCP         98m
+prometheus-node-exporter        ClusterIP      None             <none>        9100/TCP         98m
+prometheus-pushgateway          ClusterIP      10.106.211.214   <none>        9091/TCP         98m
+prometheus-server               NodePort       10.98.46.182     <none>        80:30835/TCP     98m
+
+$ kubectl get pods -o wide  ---> This will display the prometheus pod exact location in the nodes e.g. node-1
+NAME                                             READY   STATUS    RESTARTS      AGE    IP               NODE     NOMINATED NODE   READINESS GATES
+petclinic-deployment-77c77d5b78-t5xxn            1/1     Running   2 (29h ago)   44h    192.168.247.19   node-2   <none>           <none>
+prometheus-alertmanager-7775966c-7szgj           2/2     Running   0             101m   192.168.84.161   node-1   <none>           <none>
+prometheus-kube-state-metrics-76f66976cb-sffl6   1/1     Running   0             101m   192.168.84.158   node-1   <none>           <none>
+prometheus-node-exporter-dsr97                   1/1     Running   0             101m   172.31.82.223    node-1   <none>           <none>
+prometheus-node-exporter-jdmmw                   1/1     Running   0             101m   172.31.83.177    node-2   <none>           <none>
+prometheus-pushgateway-646ffc789f-p5b52          1/1     Running   0             101m   192.168.84.160   node-1   <none>           <none>
+prometheus-server-57cc5ffc74-bdfkm               2/2     Running   0             101m   192.168.84.159   node-1   <none>           <none>
+
+Browse the Prometheus Dashborad: http://<PUBLIC-IP of Node-1>:30835
+
+
+
+
+
