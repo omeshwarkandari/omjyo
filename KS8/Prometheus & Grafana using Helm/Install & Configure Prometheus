@@ -121,6 +121,17 @@ daemonset.apps/prometheus-node-exporter   2         2         2       2         
 Replicaset Deployment: Alert Manger and Prometheus Server
 
 
+Prometheus: The most favoured monitoring tool for the Kubernets Cluster because it has the capability to scrap, store, export & visualize the metrics for a dynamic envioronment.
+As we know Kubernetes unlike the other infrastructure is dynamic in nature where the most critical assets/artifacts PODS keep changing dynamically so its not posssible for the 
+legacy monitoring tools to monitor these resources because these tools scrap and share metrics based on the static configuration like IP Addresses.
+
+Components used by Prometheus in the Metric Srapping Process:
+1. Prometheus server: It is the main engine 
+2. Node Exporter: It is a Prometheus exporter for server level and OS level metrics like CPU, Memory and Disk utilization. Kind:ds ensures a node exported pod in each Node.
+3. Push Gateway: It is used to allow external, ephemeral and batch jobs to expose their metrics to Prometheus which can not be scrapped internally.
+4. Alert Manager: It helps send alert to multiple ways email/sms/Tickting tool in a real time to take a necessary action to ensure business continuity.
+5. Dashboard: There are many way metrics can be visualize like Prometheus Dashborad/ Grafana but the most versatile is the Grafana Dashboard.
+
 
 
 
