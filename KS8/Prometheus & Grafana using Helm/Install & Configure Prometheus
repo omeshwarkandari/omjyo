@@ -2,8 +2,11 @@ Customized Prometheus is installed using Helm Repository
 
 1. Add the Heelm repo as suggested by the Helm Community "https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack#kube-prometheus-stack"
 $ helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+$ helm repo add kube-state-metrics https://kubernetes.github.io/kube-state-metrics
+helm repo update
+
 $ helm repo update
-( Also we can get the available repo for prometheus by runing $ helm search repo prometheus )
+( Also we can get the available repo for prometheus by the cmd- $ helm search repo prometheus )
 2. View the repos:
 $ helm repo list
 NAME                    URL
@@ -40,7 +43,13 @@ prometheus-community/prometheus-statsd-exporter         0.4.0           0.22.1  
 prometheus-community/prometheus-to-sd                   0.4.0           0.5.2           Scrape metrics stored in prometheus format and ..
 
 We will use "prometheus-community/prometheus" to install the prometheus server and before installing it can be customized.
-We can install prometheus server using $ helm install <release-name> prometheus-community/prometheus which will create the prometheus:
+Install Prometheus in the default ns-
+$ helm install <release-name> prometheus-community/prometheus 
+or Install in seperate namespace e.g. monitor-
+$ helm install prometheus prometheus-community/prometheus -n monitor
+
+Customize the Prometheus Instalallation by changing the values.yaml file:
+
  - All the services Type:ClusterIP (This means we can not access the prometheus metrics from oustide as it will be accessible only on the "localhost:9090"
  - Prometheus-Server might not intialize as default config is using Permanet Volume Mounts which are not configured for our Demo Cluster rather we are suing EmptyDir.
 $ mkdir test (Craete a directory and ensure the logi user has owner permission)
@@ -73,6 +82,7 @@ Change the type to NodePort with an unused port number from 30000-32767
  $ helm install <release-name> <repo-name> --values <new values file> --namespace <desired namespace> 
 Lets use rlaese-name as prometheus and default namespace
  $ helm install prometheus prometheus-community/prometheus --values test/prometheus.values 
+ try $ helm install prometheus prometheus-community/prometheus -f test/prometheus.values -n monitor
 NAME: prometheus
 LAST DEPLOYED: Wed Sep 22 11:27:43 2021
 NAMESPACE: default
