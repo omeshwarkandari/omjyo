@@ -4,7 +4,7 @@ NAME                                            CHART VERSION   APP VERSION     
 stable/grafana                                  5.5.7           7.1.1           DEPRECATED - The leading tool for querying and ...
 prometheus-community/kube-prometheus-stack      18.0.12         0.50.0          kube-prometheus-stack collects Kubernetes manif...
 prometheus-community/prometheus-druid-exporter  0.11.0          v0.8.0          Druid exporter to monitor druid metrics with Pr...
-Add more repos: 
+Add the latest/correct repo: 
 $ helm repo add grafana https://grafana.github.io/helm-charts
 $ helm search repo grafana
 NAME                                            CHART VERSION   APP VERSION     DESCRIPTION
@@ -56,7 +56,7 @@ Repace it with: (In prometheus the services were opened on a diffrent port becau
 
 Replace persisten-Volume from true to false.
 
-$ helm install my-grafan grafana/grafana --values test/grafana.values  (it can be grafana.txt or abc.txt)
+$ helm install my-grafana grafana/grafana --values test/grafana.values  (it can be grafana.txt or abc.txt)
 
 $ helm list
 NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
@@ -64,6 +64,7 @@ my-grafan       default         1               2021-09-22 14:18:06.668812344 +0
 petclinic-app   default         1               2021-09-20 16:20:51.325928071 +0000 UTC deployed        petclinic-0.1.0         1.0
 prometheus      default         1               2021-09-22 11:27:43.189991899 +0000 UTC deployed        prometheus-14.7.1       2.26.0
 
+$ helm ls -A  ---> Deployments in all the namespaces.
 
 Login to Cluster:
 $ kubectl get svc
