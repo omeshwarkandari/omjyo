@@ -51,6 +51,7 @@ Customize the Prometheus Instalallation by changing the values.yaml file:
  - All the services Type:ClusterIP (This means we can not access the prometheus metrics from oustide as it will be accessible only on the "localhost:9090"
  - Prometheus-Server might not intialize as default config is using Permanet Volume Mounts which are not configured for our Demo Cluster rather we are suing EmptyDir.
 $ mkdir test (Craete a directory and ensure the logi user has owner permission)
+
 $ helm inspect values prometheus-community/prometheus > test/prometheus.values (Copy the values of prometheus default configuartion to a file prometheus.values)
 Edit the configuration inside the "prometheus.values"
 $ vi test/prometheus.values
@@ -68,8 +69,8 @@ Search type by /type and n to scroll to fine the Promotheus Server Service confi
     type: ClusterIP
 Change the type to NodePort with an unused port number from 30000-32767
     type: NodePort
-    NodePort: 32323
-
+    nodePort: 32500
+(Note: type: NodePort with Both "N & P" in caps while nect line nodePort with "n" small/ "P" caps otherwise actual port migth not be 32500 but a random selecetion.
  Search the PersistentVolume and if enable: true then make it false so that prometheus do not search for PV rather use default Emptydir voulme mount.
   persistentVolume:
     ## If true, pushgateway will create/use a Persistent Volume Claim
