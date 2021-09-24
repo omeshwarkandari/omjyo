@@ -1,0 +1,54 @@
+CPU Utilization in %:
+Lets First Understand the query with sysntax: node_cpu_seconds_total{instance name, jobname}
+where the values for instance and jobname will appear as we run the query in grafana dashboard.
+e.g. node_cpu_seconds_total{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}
+
+The metrics are being scrapped by the node exported from the /proc/stat and tell us how many seconds each CPU spent doing each type of mutually exlusive work: 
+user: The time spent in userland
+system: The time spent in the kernel
+iowait: Time spent waiting for I/O
+idle: Time the CPU had nothing to do
+irq&softirq: Time servicing interrupts
+guest: If you are running VMs, the CPU they use
+steal: If you are a VM, time other VMs "stole" from your CPUs
+
+These are counters, so to calculate the per-second values we use the rate function:
+rate(node_cpu_seconds_total{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}[200s])
+
+Aggregate this to get the overall value across all CPUs for the machine:
+sum by (mode)(rate(node_cpu_seconds_total{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}[255s]))
+% utilization by: sum by (mode)(rate(node_cpu_seconds_total{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}[255s]))*100
+
+We can get usage during 'idle' and not 'idle' modes: mode='idle' or mode!='idle" ( where mode'idle'=100-mode!-'idle' or vice-versa)
+
+sum by (mode)(rate(node_cpu_seconds_total{instance="172.31.82.223:9100",job="kubernetes-service-endpoints",mode!='idle'}[255s]))*100
+or by (instance,work)
+sum by (mode,instance)(rate(node_cpu_seconds_total{instance="172.31.82.223:9100",job="kubernetes-service-endpoints",mode!='idle'}[255s]))*100
+
+Buils the Dashborad: CPU Utilization	
+
+query part1:
+node_cpu_seconds_total{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}   -----> Output a long list
+count(node_cpu_seconds_total{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"})   ---->  16
+count(node_cpu_seconds_total{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}) by (cpu)    ---->  {cpu="0"}  8   {cpu="1"}   
+count(count(node_cpu_seconds_total{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}) by (cpu))    ----->  {}    2
+(count(count(node_cpu_seconds_total{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}) by (cpu)))    ----->  {}    2  (same result)
+
+quer part2:
+rate(node_cpu_seconds_total{mode='idle',instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}[315s])   ---> output both cpu utilization 0.94208 & 0.94208
+sum by (mode)(rate(node_cpu_seconds_total{mode='idle',instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}[315s]))  --->  {mode="idle"}    1.880041666666648
+	(rate(node_cpu_seconds_total{mode='idle',instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}[315s])))	----> 	{}   1.8773999999999917
+
+(quer1-quer2)
+((count(count(node_cpu_seconds_total{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}) by (cpu)))-avg(sum by (mode)(rate(node_cpu_seconds_total{mode='idle',instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}[315s]))))   ---> {}   0.11737499999999268 which is (2-1.8773999999999917)
+
+((quer1-quer2)*100)
+(((count(count(node_cpu_seconds_total{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}) by (cpu)))-avg(sum by (mode)(rate(node_cpu_seconds_total{mode='idle',instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}[315s]))))*100)  --> {}  12.180000000000302
+
+quer3:
+count(count(node_cpu_seconds_total{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}) by (cpu))
+
+Final output: ((quer1-quer2)*100)/quer3
+(((count(count(node_cpu_seconds_total{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}) by (cpu)))-avg(sum by (mode)(rate(node_cpu_seconds_total{mode='idle',instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}[315s]))))*100) / count(count(node_cpu_seconds_total{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}) by (cpu))
+Add Vusualization mode "Gauge", Threshold 80 with Mode as "Percentage"
+Save the Panel as "CPU Utilization"
