@@ -79,55 +79,92 @@ Change the type to NodePort with an unused port number from 30000-32767
 
  Save the configuration and install helm using the new values.
  $ helm install <release-name> <repo-name> --values <new values file> --namespace <desired namespace> 
-Lets use rlaese-name as prometheus and default namespace
- $ helm install prometheus prometheus-community/prometheus --values test/prometheus.values 
- try $ helm install prometheus prometheus-community/prometheus -f test/prometheus.values -n monitor
+Lets use rlaese-name as prometheus and namespace monitor:
+ $ kubectl create ns monitor
+ 
+ $ helm install prometheus prometheus-community/prometheus -f test/prometheus.values -n monitor   --->
+{
 NAME: prometheus
-LAST DEPLOYED: Wed Sep 22 11:27:43 2021
-NAMESPACE: default
+LAST DEPLOYED: Fri Sep 24 04:59:10 2021
+NAMESPACE: monitor
 STATUS: deployed
 REVISION: 1
 TEST SUITE: None
 NOTES:
 The Prometheus server can be accessed via port 80 on the following DNS name from within your cluster:
-prometheus-server.default.svc.cluster.local ........
+prometheus-server.monitor.svc.cluster.local
+Get the Prometheus server URL by running these commands in the same shell:
+  export NODE_PORT=$(kubectl get --namespace monitor -o jsonpath="{.spec.ports[0].nodePort}" services prometheus-server)
+  export NODE_IP=$(kubectl get nodes --namespace monitor -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+#################################################################################
+######   WARNING: Persistence is disabled!!! You will lose your data when   #####
+######            the Server pod is terminated.                             #####
+#################################################################################
+The Prometheus alertmanager can be accessed via port 80 on the following DNS name from within your cluster:
+prometheus-alertmanager.monitor.svc.cluster.local
+Get the Alertmanager URL by running these commands in the same shell:
+  export POD_NAME=$(kubectl get pods --namespace monitor -l "app=prometheus,component=alertmanager" -o jsonpath="{.items[0].metadata.name}")
+  kubectl --namespace monitor port-forward $POD_NAME 9093
+#################################################################################
+######   WARNING: Persistence is disabled!!! You will lose your data when   #####
+######            the AlertManager pod is terminated.                       #####
+#################################################################################
+#################################################################################
+######   WARNING: Pod Security Policy has been moved to a global property.  #####
+######            use .Values.podSecurityPolicy.enabled with pod-based      #####
+######            annotations                                               #####
+######            (e.g. .Values.nodeExporter.podSecurityPolicy.annotations) #####
+#################################################################################
+The Prometheus PushGateway can be accessed via port 9091 on the following DNS name from within your cluster:
+prometheus-pushgateway.monitor.svc.cluster.local
+Get the PushGateway URL by running these commands in the same shell:
+  export POD_NAME=$(kubectl get pods --namespace monitor -l "app=prometheus,component=pushgateway" -o jsonpath="{.items[0].metadata.name}")
+  kubectl --namespace monitor port-forward $POD_NAME 9091
+For more information on running Prometheus, visit:https://prometheus.io/
+}
+ 
+ 
+Now Go to the Kubernetes Master Server:
+$ kubectl get all -n monitor
+NAME                                                 READY   STATUS    RESTARTS   AGE
+pod/prometheus-alertmanager-7775966c-4kmpd           2/2     Running   0          5m52s
+pod/prometheus-kube-state-metrics-76f66976cb-vd2rb   1/1     Running   0          5m52s
+pod/prometheus-node-exporter-gknp8                   1/1     Running   0          5m52s
+pod/prometheus-node-exporter-n7rwm                   1/1     Running   0          5m52s
+pod/prometheus-pushgateway-646ffc789f-fshrp          1/1     Running   0          5m52s
+pod/prometheus-server-57cc5ffc74-688jq               2/2     Running   0          5m52s
 
-$ helm list    (This will show prometheus alongwith petclinic-app deployed using the docker image)
+NAME                                    TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+service/prometheus-alertmanager         ClusterIP   10.99.199.62    <none>        80/TCP         5m52s
+service/prometheus-kube-state-metrics   ClusterIP   10.102.86.124   <none>        8080/TCP       5m52s
+service/prometheus-node-exporter        ClusterIP   None            <none>        9100/TCP       5m52s
+service/prometheus-pushgateway          ClusterIP   10.108.102.30   <none>        9091/TCP       5m52s
+service/prometheus-server               NodePort    10.103.206.60   <none>        80:32500/TCP   5m52s
+
+NAME                                      DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
+daemonset.apps/prometheus-node-exporter   2         2         2       2            2           <none>          5m52s
+
+NAME                                            READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/prometheus-alertmanager         1/1     1            1           5m52s
+deployment.apps/prometheus-kube-state-metrics   1/1     1            1           5m52s
+deployment.apps/prometheus-pushgateway          1/1     1            1           5m52s
+deployment.apps/prometheus-server               1/1     1            1           5m52s
+
+NAME                                                       DESIRED   CURRENT   READY   AGE
+replicaset.apps/prometheus-alertmanager-7775966c           1         1         1       5m52s
+replicaset.apps/prometheus-kube-state-metrics-76f66976cb   1         1         1       5m52s
+replicaset.apps/prometheus-pushgateway-646ffc789f          1         1         1       5m52s
+replicaset.apps/prometheus-server-57cc5ffc74               1         1         1       5m52s
+
+-bash-4.2$ helm ls -A   ---> This will display all the deploed namespaces.
 NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
 petclinic-app   default         1               2021-09-20 16:20:51.325928071 +0000 UTC deployed        petclinic-0.1.0         1.0
-prometheus      default         1               2021-09-22 11:27:43.189991899 +0000 UTC deployed        prometheus-14.7.1       2.26.0
+prometheus      monitor         1               2021-09-24 04:59:10.206655178 +0000 UTC deployed        prometheus-14.7.1       2.26.0
 
 
-Now Go to the Kubernetes Master Server:
-$ kubectl get all  ---> This will display all the prometheus components svc/deployments/pods
-$ kubectl get svc  ---> Prometheus Server is using service NodePort and exposed at port 30835
-NAME                            TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
-kubernetes                      ClusterIP      10.96.0.1        <none>        443/TCP          18d
-petclinic-service               LoadBalancer   10.97.111.141    <pending>     8080:32750/TCP   44h
-prometheus-alertmanager         ClusterIP      10.105.121.16    <none>        80/TCP           98m
-prometheus-kube-state-metrics   ClusterIP      10.96.242.163    <none>        8080/TCP         98m
-prometheus-node-exporter        ClusterIP      None             <none>        9100/TCP         98m
-prometheus-pushgateway          ClusterIP      10.106.211.214   <none>        9091/TCP         98m
-prometheus-server               NodePort       10.98.46.182     <none>        80:30835/TCP     98m
-
-$ kubectl get pods -o wide  ---> This will display the prometheus pod exact location in the nodes e.g. node-1
-NAME                                             READY   STATUS    RESTARTS      AGE    IP               NODE     NOMINATED NODE   READINESS GATES
-petclinic-deployment-77c77d5b78-t5xxn            1/1     Running   2 (29h ago)   44h    192.168.247.19   node-2   <none>           <none>
-prometheus-alertmanager-7775966c-7szgj           2/2     Running   0             101m   192.168.84.161   node-1   <none>           <none>
-prometheus-kube-state-metrics-76f66976cb-sffl6   1/1     Running   0             101m   192.168.84.158   node-1   <none>           <none>
-prometheus-node-exporter-dsr97                   1/1     Running   0             101m   172.31.82.223    node-1   <none>           <none>
-prometheus-node-exporter-jdmmw                   1/1     Running   0             101m   172.31.83.177    node-2   <none>           <none>
-prometheus-pushgateway-646ffc789f-p5b52          1/1     Running   0             101m   192.168.84.160   node-1   <none>           <none>
-prometheus-server-57cc5ffc74-bdfkm               2/2     Running   0             101m   192.168.84.159   node-1   <none>           <none>
-
-Browse the Prometheus Dashborad: http://<PUBLIC-IP of Node-1>:30835
-
-Daemonset: node-exporter is the agent for scrapping metrics from a pod so it is deployed as ds
-$ kubectl get ds
-NAME                                      DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
-daemonset.apps/prometheus-node-exporter   2         2         2       2            2           <none>          107m
-
-Replicaset Deployment: Alert Manger and Prometheus Server
+Check the Prometheus by accessing it over the browser: http://"Public-IP of the Node hosting Prom-server Port":NodePort
+e.g  in this case :  http://18.212.53.205:32500/
 
 
 Prometheus: The most favoured monitoring tool for the Kubernets Cluster because it has the capability to scrap, store, export & visualize the metrics for a dynamic envioronment.
