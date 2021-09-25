@@ -12,18 +12,18 @@ such as a HDD, keyboard or printer and used for the file system metadata.
 
 Query A: Used memory
 node_memory_MemTotal_bytes{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}-node_memory_Cached_bytes{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}-node_memory_MemFree_bytes{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}-node_memory_Buffers_bytes{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}
-Add mode: Used, Graph: Time series with Y-asix Unit:bytes(IEC) to change Bustes into GB units.
+Add Legend: Used, Graph: Time series with Y-asix Unit:bytes(IEC) to change Bustes into GB units.
 
 Query B: cached Memory
 node_memory_Cached_bytes{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}
-add mode: Cached
+Add Legend: Cached
 
 Query C: Free Memory
 node_memory_MemFree_bytes{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}
-add mode: Free
+aAdd Legend: Free
 
 Query D: Buffer Memory
 node_memory_Buffers_bytes{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}
-add mode: Buffer
+Add Legend: Buffer
 
 Save the Panel with an appropriate heading e.g. "Memory Use Node-1"
