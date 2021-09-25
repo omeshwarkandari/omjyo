@@ -1,0 +1,28 @@
+We have created the Four graphs in a Single Panel by runing four queries as mentioned below:-
+
+1. Used memory by a Node by subtracting Cached Memory, Buffer Memory and Free Memory from the Total Available Memory.
+i.e. Used Memory = Total Memory - Free Memory - Cached Memory - Buffer Memory
+
+2. Free Memory i.e. Avaialble to use after current utilization
+
+3. Cached memory
+
+4. Buffer Memory
+
+Query A: Used memory
+node_memory_MemTotal_bytes{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}-node_memory_Cached_bytes{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}-node_memory_MemFree_bytes{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}-node_memory_Buffers_bytes{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}
+Add mode: Used, Graph: Time series with Y-asix Unit:bytes(IEC) to change Bustes into GB units.
+
+Query B: cached Memory
+node_memory_Cached_bytes{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}
+add mode: Cached
+
+Query C: Free Memory
+node_memory_MemFree_bytes{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}
+add mode: Free
+
+Query D: Buffer Memory
+node_memory_Buffers_bytes{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}
+add mode: Buffer
+
+Save the Panel with an appropriate heading e.g. "Memory Use Node-1"
