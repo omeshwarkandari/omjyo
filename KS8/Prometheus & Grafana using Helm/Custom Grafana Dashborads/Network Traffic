@@ -1,0 +1,17 @@
+Network Traffic:
+Network traffic has two parts receive and transmit so we will create as single graph by running tqo queries one for the recieved traffic  & the transmitted traffic each.
+
+Query A: Recieved Traffic
+
+rate(node_network_transmit_bytes_total{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}[255s])
+rate(node_network_transmit_bytes_total{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}[255s])*8
+Add Legend:{{device}}receive
+Add as Time Series graph with Unit: Kilobytes/sec for Y-axis
+
+
+Query B: Transmitted Traffic
+
+rate(node_network_transmit_bytes_total{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}[255s])
+rate(node_network_transmit_bytes_total{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}[255s])*8
+Add Legend:{{device}}transmit
+Add as Time Series graph with Unit: Kilobytes/sec for Y-axis
