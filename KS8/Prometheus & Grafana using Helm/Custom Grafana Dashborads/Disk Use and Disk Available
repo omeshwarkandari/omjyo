@@ -1,0 +1,35 @@
+Disk Utlization:
+We will Create two seperate Panels one each for Used Disk Space and Available Disk Space.
+
+Graph 1: Used Disk Space
+Query1: Total Disk by excluding the disk used by tmp, virtual machines etc.
+node_filesystem_size_bytes{instance="172.31.82.223:9100",job="kubernetes-service-endpoints",device!~"/dev/loop.*",device!~"tmpfs | nsfs",device!="gvfsd-fuse"}
+Query2: Available as free to use
+node_filesystem_avail_bytes{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}
+
+Used Disk Space = (Total Disk Space - Available Disk Space)
+
+node_filesystem_size_bytes{instance="172.31.82.223:9100",job="kubernetes-service-endpoints",device!~"/dev/loop.*",device!~"tmpfs | nsfs",device!="gvfsd-fuse"}-node_filesystem_avail_bytes{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}
+Add the Legend: {{device}} because we want only the devices to be shown
+Add the Graph: TimeSeries with Unit:bytes(IEC) in the Y-axis so that it shwos metrics in GB.
+Save and name it e.g. "Used Disk Space Node-1"
+
+
+
+
+Graph 2: Available Disk Space
+node_filesystem_avail_bytes{instance="172.31.82.223:9100",job="kubernetes-service-endpoints",device!~"/dev/loop.*",device!~"tmpfs | nsfs",device!="gvfsd-fuse"}
+Add the Graph: TimeSeries with Unit:bytes(IEC) in the Y-axis so that it shwos metrics in GB.
+Save and name it e.g. "Available Disk Space Node-1"
+
+
+Note:
+/dev/loop* are loop devices making plain files accessible as block devices. They are typically used for mounting disk images.
+e.g. /dev/loop0 ---> Ubuntu Image and  /dev/loop1 ---> Docket Image
+
+Tmpfs is a file system which keeps all of its files in virtual memory. 
+Everything in tmpfs is temporary in the sense that no files will be created on your hard drive. If you unmount a tmpfs instance, everything stored therein is lost.
+
+GVFSD is the daemon process for GVFS, the GNOME Virtual File System (or possibly it's predecessor, GnomeVFS).
+It's a GNOME component that handles filesystem automounting when you're logged into the GNOME-based Ubuntu desktop. 
+This includes devices like USB thumb drives and external HDDs, optical discs (CD/DVD), Samba or NFS or SSHFS network mounts, and other useful userspace filesystems.
