@@ -3,11 +3,12 @@ We have created the Four graphs in a Single Panel by runing four queries as ment
 1. Used memory by a Node by subtracting Cached Memory, Buffer Memory and Free Memory from the Total Available Memory.
 i.e. Used Memory = Total Memory - Free Memory - Cached Memory - Buffer Memory
 
-2. Free Memory i.e. Avaialble to use after current utilization
+2. Free Memory i.e. Avaialble to use after current utilization.
 
-3. Cached memory
+3. Cached memory: RAM is used as cache (pages with actual contents of files or block devices).
 
-4. Buffer Memory
+4. Buffer Memory:  It is a portion of the total memory that is set aside as a temporary holding place for data that is being sent to or received from an external devices
+such as a HDD, keyboard or printer and used for the file system metadata.
 
 Query A: Used memory
 node_memory_MemTotal_bytes{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}-node_memory_Cached_bytes{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}-node_memory_MemFree_bytes{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}-node_memory_Buffers_bytes{instance="172.31.82.223:9100",job="kubernetes-service-endpoints"}
