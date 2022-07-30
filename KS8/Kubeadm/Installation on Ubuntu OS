@@ -64,7 +64,7 @@ $  apt-cache madison docker-ce
 b. Install a specific version using the version string from the second column e.g. 5:20.10.16~3-0~ubuntu-jammy
 $ sudo apt-get install docker-ce=<VERSION_STRING> docker-ce-cli=<VERSION_STRING> containerd.io docker-compose-plugin
 3. Verify that Docker Engine is installed correctly by running the hello-world image.
-$ sudo docker run hello-worl
+$ sudo docker run hello-world
 
 Install cri-dockerd:
 clone this repository in your local environment:
@@ -96,14 +96,11 @@ systemctl daemon-reload
 systemctl enable cri-docker.service
 systemctl enable --now cri-docker.socket
 
-d
-
-
-Set up the Cgroup Driver for Docker so that Container runtime and kubelet cgroup drivers are same otherwise the kubelet process will fail.
+Step 3: Set up the Cgroup Driver for Docker: To ensure that Container runtime and kubelet cgroup drivers are same otherwise the kubelet process will fail.
 Configure the Docker daemon, in particular to use systemd for the management of the container’s cgroups.
-cd /etc/docker and run below (If no docker dir then sudo mkdir /etc/docker)
 
-cat <<EOF | sudo tee /etc/docker/daemon.json
+$ cd /etc/docker and run below (If no docker dir then sudo mkdir /etc/docker)
+$ cat <<EOF | sudo tee /etc/docker/daemon.json
 {
   "exec-opts": ["native.cgroupdriver=systemd"],
   "log-driver": "json-file",
@@ -115,7 +112,6 @@ cat <<EOF | sudo tee /etc/docker/daemon.json
 EOF
 
 Note: overlay2 is the preferred storage driver for systems running Linux kernel version 4.0 or higher, or RHEL or CentOS using version 3.10.0-514 and above.
-
 Restart Docker and enable on boot:
 sudo systemctl enable docker
 sudo systemctl daemon-reload
@@ -123,27 +119,34 @@ sudo systemctl restart docker
 
 
 Step 4: Add Kubernetes repository for Debian/Ubuntu:
-sudo apt-get update
-sudo apt-get install -y apt-transport-https ca-certificates curl
-
-Download the Google Cloud public signing key:
-sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
-
-Add the Kubernetes apt repository:
-echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
-
-Update apt package index, install kubelet, kubeadm and kubectl:
-sudo apt-get update
-sudo apt-get install -y kubelet kubeadm kubectl
-
+1. Update the apt package index and install packages needed to use the Kubernetes apt repository:
+$ sudo apt-get update
+$ sudo apt-get install -y apt-transport-https ca-certificates curl
+2. Download the Google Cloud public signing key:
+$ sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+3. Add the Kubernetes apt repository:
+$ echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+4. Update apt package index, install kubelet, kubeadm and kubectl and pin their version:
+$ sudo apt-get update
+$ sudo apt-get install -y kubelet kubeadm kubectl
+$ sudo apt-mark hold kubelet kubeadm kubectl
+The kubelet is now restarting every few seconds, as it waits in a crashloop for kubeadm to tell it what to do.
 
 Step 5: Initialize the Master Kubernetes:
 
 kubeadm init --apiserver-advertise-address=172.31.92.168 --pod-network-cidr=192.168.0.0/16
 ( Read the instruction which says that run the kubectl or access the cluster using a normal user and root is not recommended)
 
-Create a noram user: e.g. "kubeadm"
-useradd kubeadm & set the password: passwd kubeadm , also add the user in /etc/sudoers file using "visudo" command.
+Your Kubernetes control-plane has initialized successfully!
+To start using your cluster, you need to run the following as a regular user:
+  mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+Create a noram user: e.g. "kubeadm",  set the password and also add the user in /etc/sudoers file using "visudo" command.
+$ useradd kubeadm 
+$ passwd kubeadm  
+$ visudo 
 Note: Users in ubuntu unlike in Centos/Amzon linux does not have a home folder "$HOME" created by default so we need to create $HOME.
 root$ mkdir /home/kubeadm and craete a directory .kube to copy admin.conf so cd /home/kubeadm & create a dir .kube 
 root$ cp -i /etc/kubernetes/admin.conf /home/kubeadm/.kube/config
@@ -153,9 +156,12 @@ check the cluster status: kubectl cluster-info etc.
 Note: We can copy the admin.conf in our local system as well to connect the cluster.
 
 
-Step 6: Create POD network and DNS services by adding Calico repo.
-curl https://docs.projectcalico.org/manifests/calico-typha.yaml -o calico.yaml
-kubectl apply -f calico.yaml
+Step 6: Create POD network and DNS services by adding Calico repo:
+Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+  /docs/concepts/cluster-administration/addons/
+For example create PODs using Calico Network.
+$ curl https://docs.projectcalico.org/manifests/calico-typha.yaml -o calico.yaml
+$ kubectl apply -f calico.yaml
 
 
 Join Nodes:
