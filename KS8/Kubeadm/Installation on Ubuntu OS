@@ -13,13 +13,20 @@ $ apt update
 $ nano /etc/hosts (replace ip address with host name)
 
 
-Step2 - Install Docker Engine/ Container Run Time: Docker, CRI-O, Containerd are the runtime and we are using Docker.
+Step2: CRI
+Installing Container Runtimes (CR) - To run containers in Pods, Kubernetes uses a container runtime and Kubernetes uses the Container Runtime Interface (CRI)
+to interface with your chosen container runtime.
+Container Runtime Types: Docker Engine, CRI-O, Containerd and Mirantis Container Runtime
+
+CRI using Docker Engine:
+* On each of your nodes, install Docker for your Linux distribution as per Install Docker Engine.
+* Install cri-dockerd, following the instructions in that source code repository.
+
+Install Docker Engine:
 Supported storage drivers: On Debian/Ubuntu the Docker Engine uses the overlay2 storage driver by default while AUFS need to be configured manually. 
 Uninstallation process if any previous installtion: $ sudo apt-get remove docker docker-engine docker.io containerd runc
-
 Installation Methods: Set up Docker Respository, Download the DEB package and install it manually and Automated Convenience Scripts. Most users set up 
 Docker’s repositories and install from them, for ease of installation and upgrade tasks. This is the recommended approach.
-
 Install using Set up Docker Respository:
 Before you install Docker Engine for the first time on a new host machine set up the Docker repository. Afterward, you can install and update Docker from the repository.
 Set up the repository:
@@ -34,10 +41,8 @@ $ sudo apt-get install \
     lsb-release
 or
 < $ sudo apt-get install apt-transport-https ca-certificates curl gnupg lsb-release >
-
 2. Add Docker’s official GPG key:
 $ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-
 3. Set up the stable repository:
 $ echo \
   "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
@@ -45,7 +50,7 @@ $ echo \
 or
 < echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null >
 
-Install Docker Engine:
+Docker Engine Installation process:
 
 1. Update the apt package index and install the latest version of Docker Engine and containerd or install a specific version.
 $ sudo apt-get update
@@ -53,15 +58,45 @@ $ sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plug
 Note: Receiving a GPG error when running apt-get update?
 Your default umask may not be set correctly, causing the public key file for the repo to not be detected.
 Run the following command and then try to update your repo again: sudo chmod a+r /etc/apt/keyrings/docker.gpg
-
 2. To install a specific version of Docker Engine, list the available versions in the repo, then select and install:
 a. List the versions available in your repo:
 $  apt-cache madison docker-ce
 b. Install a specific version using the version string from the second column e.g. 5:20.10.16~3-0~ubuntu-jammy
 $ sudo apt-get install docker-ce=<VERSION_STRING> docker-ce-cli=<VERSION_STRING> containerd.io docker-compose-plugin
+3. Verify that Docker Engine is installed correctly by running the hello-world image.
+$ sudo docker run hello-worl
 
-Step 3: Verify that Docker Engine is installed correctly by running the hello-world image.
-$ sudo docker run hello-world
+Install cri-dockerd:
+clone this repository in your local environment:
+$ git clone https://github.com/Mirantis/cri-dockerd.git
+The above step creates a local directory called cri-dockerd which you will need for the following steps.
+To build this code (in a POSIX environment):
+$ mkdir bin
+  VERSION=$((git describe --abbrev=0 --tags | sed -e 's/v//') || echo $(cat VERSION)-$(git log -1 --pretty='%h')) 
+  PRERELEASE=$(grep -q dev <<< "${VERSION}" && echo "pre" || echo "") REVISION=$(git log -1 --pretty='%h')
+  go get && go build -ldflags="-X github.com/Mirantis/cri-dockerd/version.Version='$VERSION}' -X 
+  github.com/Mirantis/cri-dockerd/version.PreRelease='$PRERELEASE' -X github.com/Mirantis/cri-dockerd/version.BuildTime='$BUILD_DATE' -X 
+  github.com/Mirantis/cri-dockerd/version.GitCommit='$REVISION'" -o cri-dockerd
+To install, on a Linux system that uses systemd, and already has Docker Engine installed so install Docker Engine before runing it:
+# Run these commands as root
+###Install GO###
+wget https://storage.googleapis.com/golang/getgo/installer_linux
+chmod +x ./installer_linux
+./installer_linux
+source ~/.bash_profile
+
+cd cri-dockerd
+mkdir bin
+go get && go build -o bin/cri-dockerd
+mkdir -p /usr/local/bin
+install -o root -g root -m 0755 bin/cri-dockerd /usr/local/bin/cri-dockerd
+cp -a packaging/systemd/* /etc/systemd/system
+sed -i -e 's,/usr/bin/cri-dockerd,/usr/local/bin/cri-dockerd,' /etc/systemd/system/cri-docker.service
+systemctl daemon-reload
+systemctl enable cri-docker.service
+systemctl enable --now cri-docker.socket
+
+d
 
 
 Set up the Cgroup Driver for Docker so that Container runtime and kubelet cgroup drivers are same otherwise the kubelet process will fail.
