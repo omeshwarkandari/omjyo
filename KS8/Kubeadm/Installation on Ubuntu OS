@@ -1,9 +1,11 @@
 Kubeadm on Debian Platform: 
 The LAB is created with the help of a Master Controller - t3.medium and two worker nodes t2.micro
 Process: 
-Master Node: Create EC2 Instances, Add docker repo & install docker engine, Set-up the Cgroup=systemd, Add kubernetes repo & kubectl/kubeadm/kubelet, Init (bootstrap) kubeadm, 
-             Create a user & copy admin.conf in its Home Dir, Add pod netork Calico repo & install calico.yml and finally login as user to verify the cluster info.
-Worker Node: Create EC2 Instances, Add docker repo & install docker engine, Set-up the Cgroup=systemd, Add kubernetes repo & kubectl/kubeadm/kubelet and join node to the Master.
+Master Node: 
+Create EC2 Instances, Add docker repo & install docker engine, Set-up the Cgroup=systemd, Add kubernetes repo & kubectl/kubeadm/kubelet, Init (bootstrap) kubeadm, 
+Create a user & copy admin.conf in its Home Dir, Add pod netork Calico repo & install calico.yml and finally login as user to verify the cluster info.
+Worker Node: Create EC2 Instances, Add docker repo & install docker engine, Set-up the Cgroup=systemd, Add kubernetes repo & kubectl/kubeadm/kubelet 
+and join node to the Master.
 
 Step 1:
 $ sudo su -
@@ -13,38 +15,56 @@ $ nano /etc/hosts (replace ip address with host name)
 
 Step2 - Install Docker Engine/ Container Run Time: Docker, CRI-O, Containerd are the runtime and we are using Docker.
 Supported storage drivers: On Debian/Ubuntu the Docker Engine uses the overlay2 storage driver by default while AUFS need to be configured manually. 
-Installation methods: Most users set up Docker’s repositories and install from them, for ease of installation and upgrade tasks. This is the recommended approach.
-Download the DEB package and install it manually and manage upgrades completely manually and in testing and development environments may opt automated convenience scripts.
-Install using the repository:
-Before you install Docker Engine for the first time on a new host machine set up the Docker repository. Afterward, you can install and update Docker from the repository.
-Set up the repository: Update the apt package index and install packages to allow apt to use a repository over HTTPS.
+Uninstallation process if any previous installtion: $ sudo apt-get remove docker docker-engine docker.io containerd runc
 
- sudo apt-get update
- sudo apt-get install \
+Installation Methods: Set up Docker Respository, Download the DEB package and install it manually and Automated Convenience Scripts. Most users set up 
+Docker’s repositories and install from them, for ease of installation and upgrade tasks. This is the recommended approach.
+
+Install using Set up Docker Respository:
+Before you install Docker Engine for the first time on a new host machine set up the Docker repository. Afterward, you can install and update Docker from the repository.
+Set up the repository:
+
+1. Update the apt package index and install packages to allow apt to use a repository over HTTPS.
+$ sudo apt-get update
+$ sudo apt-get install \
     apt-transport-https \
     ca-certificates \
     curl \
     gnupg \
     lsb-release
 or
-< sudo apt-get install apt-transport-https ca-certificates curl gnupg lsb-release >
+< $ sudo apt-get install apt-transport-https ca-certificates curl gnupg lsb-release >
 
-Add Docker’s official GPG key:
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+2. Add Docker’s official GPG key:
+$ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 
-Set up the stable repository:
-echo \
+3. Set up the stable repository:
+$ echo \
   "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
   $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 or
 < echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null >
 
-Install Docker Engine: Update the apt package index and install the latest version of Docker Engine and containerd or install a specific version.
+Install Docker Engine:
 
- sudo apt-get update
- sudo apt-get install docker-ce docker-ce-cli containerd.io
+1. Update the apt package index and install the latest version of Docker Engine and containerd or install a specific version.
+$ sudo apt-get update
+$ sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+Note: Receiving a GPG error when running apt-get update?
+Your default umask may not be set correctly, causing the public key file for the repo to not be detected.
+Run the following command and then try to update your repo again: sudo chmod a+r /etc/apt/keyrings/docker.gpg
 
-Step 3: Set up the Cgroup Driver for Docker so that Container runtime and kubelet cgroup drivers are same otherwise the kubelet process will fail.
+2. To install a specific version of Docker Engine, list the available versions in the repo, then select and install:
+a. List the versions available in your repo:
+$  apt-cache madison docker-ce
+b. Install a specific version using the version string from the second column e.g. 5:20.10.16~3-0~ubuntu-jammy
+$ sudo apt-get install docker-ce=<VERSION_STRING> docker-ce-cli=<VERSION_STRING> containerd.io docker-compose-plugin
+
+Step 3: Verify that Docker Engine is installed correctly by running the hello-world image.
+$ sudo docker run hello-world
+
+
+Set up the Cgroup Driver for Docker so that Container runtime and kubelet cgroup drivers are same otherwise the kubelet process will fail.
 Configure the Docker daemon, in particular to use systemd for the management of the container’s cgroups.
 cd /etc/docker and run below (If no docker dir then sudo mkdir /etc/docker)
 
