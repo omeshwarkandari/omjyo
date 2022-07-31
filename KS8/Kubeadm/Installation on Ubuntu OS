@@ -7,13 +7,61 @@ Create a user & copy admin.conf in its Home Dir, Add pod netork Calico repo & in
 Worker Node: Create EC2 Instances, Add docker repo & install docker engine, Set-up the Cgroup=systemd, Add kubernetes repo & kubectl/kubeadm/kubelet 
 and join node to the Master.
 
-Step 1:
+Step 1:Basic Configuration and Installing Pre-requisites
 $ sudo su -
 $ apt update
-$ nano /etc/hosts (replace ip address with host name)
+Set Hostname on Nodes and Hosts file:To give a unique hostname to each of your nodes
+$ hostnamectl set-hostname "node-name"
+(Make a host entry or DNS record to resolve the hostname for all nodes)
+$ echo "ipaddress host-name" >> /etc/hosts
+or
+$ cat << EOF >> /etc/hosts
+ipaddress host-name1
+ipaddress host-name2
+EOF
+
+Disable Firewall: (The nodes, containers, and pods need to be able to communicate across the cluster to perform their functions. 
+Firewalld is enabled in CentOS by default on the front-end.Add the following ports by entering the listed commands)
+On the Master Node enter:
+sudo firewall-cmd --permanent --add-port=6443/tcp
+sudo firewall-cmd --permanent --add-port=2379-2380/tcp
+sudo firewall-cmd --permanent --add-port=10250/tcp
+sudo firewall-cmd --permanent --add-port=10251/tcp
+sudo firewall-cmd --permanent --add-port=10252/tcp
+sudo firewall-cmd --permanent --add-port=10255/tcp
+sudo firewall-cmd --reload
+Enter the following commands on each worker node:
+sudo firewall-cmd --permanent --add-port=10251/tcp
+sudo firewall-cmd --permanent --add-port=10255/tcp
+firewall-cmd --reload
+or
+systemctl disable firewalld
+systemctl stop firewalld
+
+Configuring a bridge network and Update Iptables Settings: A Bridge Container Network Interface (CNI) plug-in enables all the Pods on a node to connect 
+through virtual switch by assigning each pod an IP address on the network and Set the net.bridge.bridge-nf-call-iptables to ‘1’ in sysctl config file 
+to ensure that packets are properly processed by IP tables during filtering and port forwarding.
+$ cat <<EOF > /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+EOF
+$ sysctl --system
+
+Disable SELinux: The containers need to access the host filesystem: Security-Enhanced Linux (SELinux) is a Linux kernel security module that provides a 
+mechanism for supporting access control security policies with default restricted all so SELinux needs to be set to permissive mode, which effectively 
+disables its security functions.
+$ setenforce 0
+$ sed -i --follow-symlinks 's/^SELINUX=enforcing/SELINUX=disabled/' /etc/sysconfig/selinux
+or
+$ sudo setenforce 0
+$ sudo sed -i ‘s/^SELINUX=enforcing$/SELINUX=permissive/’ /etc/selinux/config
+
+Disable swap : To enable the kubelet to work properly so that pods are deployed in healthy node rather than nodes maanging its resources to accomodate a pod.
+$ sed -i '/swap/d' /etc/fstab
+$ swapoff -a
 
 
-Step2: CRI
+Step2: Enabling Container Runtime Interface (CRI)
 Installing Container Runtimes (CR) - To run containers in Pods, Kubernetes uses a container runtime and Kubernetes uses the Container Runtime Interface (CRI)
 to interface with your chosen container runtime.
 Container Runtime Types: Docker Engine, CRI-O, Containerd and Mirantis Container Runtime
@@ -96,6 +144,7 @@ systemctl daemon-reload
 systemctl enable cri-docker.service
 systemctl enable --now cri-docker.socket
 
+
 Step 3: Set up the Cgroup Driver for Docker: To ensure that Container runtime and kubelet cgroup drivers are same otherwise the kubelet process will fail.
 Configure the Docker daemon, in particular to use systemd for the management of the container’s cgroups.
 
@@ -132,9 +181,9 @@ $ sudo apt-get install -y kubelet kubeadm kubectl
 $ sudo apt-mark hold kubelet kubeadm kubectl
 The kubelet is now restarting every few seconds, as it waits in a crashloop for kubeadm to tell it what to do.
 
-Step 5: Initialize the Master Kubernetes:
 
-kubeadm init --apiserver-advertise-address=172.31.92.168 --pod-network-cidr=192.168.0.0/16
+Step 5: Initialize the Master Kubernetes:
+$ kubeadm init --apiserver-advertise-address="IP Address of Master Node (Private of EC2)" --pod-network-cidr=192.168.0.0/16
 ( Read the instruction which says that run the kubectl or access the cluster using a normal user and root is not recommended)
 
 Your Kubernetes control-plane has initialized successfully!
