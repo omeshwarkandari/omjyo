@@ -1,21 +1,12 @@
 Taint helps to run workloads/pods on a node.
-By default a Contraol Panel is tainted while Master is untained.
-e.g In an untained cluster only the Control Panel is tainted to schedule critical workloads.
+By default a Contraol Panel is tainted to schedule critical workloads.
 
-$ kubectl taint node master-node node-role.kubernetes.io/master:NoSchedule-
-node/master-node untainted
+How to Add/Remove Taint?
+Add Taint: $ kubectl taint nodes node1 key1=value1:NoSchedule
+Remove Taint: $ kubectl taint nodes node1 key1=value1:NoSchedule-
+Example: Lets Taint and Untaint a Kubeadm Cluster with a Master Node Only
 
-Capture the Taint Results:
-$ kubectl get nodes -o json | jq '.items[].spec.taints'
-[
-  {
-    "effect": "NoSchedule",
-    "key": "node-role.kubernetes.io/control-plane"
-  }
-]
-
-
-Post taint: Master Node is also tainted to run workloads/pods if needed, generally Worker Nodes are tainted to help Master unstressful.
+Taint : 
 $ kubectl taint node master-node node-role.kubernetes.io/master:NoSchedule
 node/master-node tainted
 
@@ -31,3 +22,20 @@ $ kubectl get nodes -o json | jq '.items[].spec.taints'
     "key": "node-role.kubernetes.io/control-plane"
   }
 ]
+Meaning: Places a taint on node master-node. The taint has key key1, value node-role.kubernetes.io/master, and taint effect NoSchedule.
+This means that no pod will be able to schedule onto node-role.kubernetes.io/master unless it has a matching toleration, however, its ready to take workloads.
+
+Untaint:
+$ kubectl taint node master-node node-role.kubernetes.io/master:NoSchedule-
+node/master-node untainted
+
+Capture the Taint Results:
+$ kubectl get nodes -o json | jq '.items[].spec.taints'
+[
+  {
+    "effect": "NoSchedule",
+    "key": "node-role.kubernetes.io/control-plane"
+  }
+]
+Meaning: Only Control Panel can schedule critical workloads.
+
