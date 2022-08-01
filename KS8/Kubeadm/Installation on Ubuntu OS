@@ -20,23 +20,6 @@ ipaddress host-name1
 ipaddress host-name2
 EOF
 
-Disable Firewall: (The nodes, containers, and pods need to be able to communicate across the cluster to perform their functions. 
-Firewalld is enabled in CentOS by default on the front-end.Add the following ports by entering the listed commands)
-On the Master Node enter:
-sudo firewall-cmd --permanent --add-port=6443/tcp
-sudo firewall-cmd --permanent --add-port=2379-2380/tcp
-sudo firewall-cmd --permanent --add-port=10250/tcp
-sudo firewall-cmd --permanent --add-port=10251/tcp
-sudo firewall-cmd --permanent --add-port=10252/tcp
-sudo firewall-cmd --permanent --add-port=10255/tcp
-sudo firewall-cmd --reload
-Enter the following commands on each worker node:
-sudo firewall-cmd --permanent --add-port=10251/tcp
-sudo firewall-cmd --permanent --add-port=10255/tcp
-firewall-cmd --reload
-or
-systemctl disable firewalld
-systemctl stop firewalld
 
 
 Step 2: Install and configure prerequisites to set-up Kubernetes nodes on Linux: Bridge Network, Cgroup drivers and CRI.
@@ -174,6 +157,28 @@ sudo systemctl enable docker
 sudo systemctl daemon-reload
 sudo systemctl restart docker
 
+
+
+Step 3: Disable Firewall, SELinux and Swap
+
+Disable Firewall: (The nodes, containers, and pods need to be able to communicate across the cluster to perform their functions. 
+Firewalld is enabled in CentOS by default on the front-end.Add the following ports by entering the listed commands)
+On the Master Node enter:
+sudo firewall-cmd --permanent --add-port=6443/tcp
+sudo firewall-cmd --permanent --add-port=2379-2380/tcp
+sudo firewall-cmd --permanent --add-port=10250/tcp
+sudo firewall-cmd --permanent --add-port=10251/tcp
+sudo firewall-cmd --permanent --add-port=10252/tcp
+sudo firewall-cmd --permanent --add-port=10255/tcp
+sudo firewall-cmd --reload
+Enter the following commands on each worker node:
+sudo firewall-cmd --permanent --add-port=10251/tcp
+sudo firewall-cmd --permanent --add-port=10255/tcp
+firewall-cmd --reload
+or
+systemctl disable firewalld
+systemctl stop firewalld
+
 Disable SELinux: The containers need to access the host filesystem: Security-Enhanced Linux (SELinux) is a Linux kernel security module that provides a 
 mechanism for supporting access control security policies with default restricted all so SELinux needs to be set to permissive mode, which effectively 
 disables its security functions.
@@ -186,6 +191,7 @@ $ sudo sed -i ‘s/^SELINUX=enforcing$/SELINUX=permissive/’ /etc/selinux/confi
 Disable swap : To enable the kubelet to work properly so that pods are deployed in healthy node rather than nodes maanging its resources to accomodate a pod.
 $ sed -i '/swap/d' /etc/fstab
 $ swapoff -a
+
 
 
 Step 4: Add Kubernetes repository for Debian/Ubuntu:
@@ -203,6 +209,7 @@ $ sudo apt-mark hold kubelet kubeadm kubectl
 The kubelet is now restarting every few seconds, as it waits in a crashloop for kubeadm to tell it what to do.
 
 
+
 Step 5: Initialize the Master Kubernetes:
 $ kubeadm init --apiserver-advertise-address="IP Address of Master Node (Private of EC2)" --pod-network-cidr=192.168.0.0/16
 ( Read the instruction which says that run the kubectl or access the cluster using a normal user and root is not recommended)
@@ -217,8 +224,10 @@ o start using your cluster, you need to run the following as a regular user:
   mkdir -p $HOME/.kube
   sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
   sudo chown $(id -u):$(id -g) $HOME/.kube/config
+Verify cluster proper working using root acoount: $ kubectl cluster-info,  $ kubectl get nodes, $ kubectl get cs
 
-Login with a nornal user e.g. "harness"
+
+Step 6: Login with a nornal user e.g. "harness"
 1. Create user: $ useradd harness  
 2. Craeet user password: $ passwd harness  
 3. Add user to admin privilege group of sudoer users and add user into diffrent groups.
