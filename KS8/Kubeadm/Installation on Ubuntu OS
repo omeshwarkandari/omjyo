@@ -296,11 +296,13 @@ kube-system   kube-scheduler-master-node            1/1     Running   0         
 
 
 Step 6: Control plane node isolation: By default, your cluster will not schedule Pods on the control plane nodes for security reasons.
-If you want to be able to schedule Pods on the control plane nodes, for example for a single machine Kubernetes cluster, run:
+If you want to be able to schedule Pods on the control plane nodes, for example for a single machine Kubernetes cluster, run it from user:
 $ kubectl taint nodes --all node-role.kubernetes.io/control-plane- node-role.kubernetes.io/master-
 The output will look something like:
 node "test-01" untainted
-...
+e.g 
+$ kubectl taint nodes --all node-role.kubernetes.io/control-plane- node-role.kubernetes.io/master-
+node/master-node untainted
 This will remove the node-role.kubernetes.io/control-plane and node-role.kubernetes.io/master taints from any nodes that have them,
 including the control plane nodes, meaning that the scheduler will then be able to schedule Pods everywhere.
 
