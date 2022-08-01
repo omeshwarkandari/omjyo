@@ -104,42 +104,43 @@ Supported storage drivers: On Debian/Ubuntu the Docker Engine uses the overlay2 
 Uninstallation process if any previous installtion: $ sudo apt-get remove docker docker-engine docker.io containerd runc
 Installation Methods: Set up Docker Respository, Download the DEB package and install it manually and Automated Convenience Scripts. Most users set up 
 Docker’s repositories and install from them, for ease of installation and upgrade tasks. This is the recommended approach.
-Install using Set up Docker Respository:
+
+Set up the repository:
 Before you install Docker Engine for the first time on a new host machine set up the Docker repository. Afterward, you can install and update Docker from the repository.
 Set up the repository:
 
 1. Update the apt package index and install packages to allow apt to use a repository over HTTPS.
 $ sudo apt-get update
 $ sudo apt-get install \
-    apt-transport-https \
     ca-certificates \
     curl \
     gnupg \
     lsb-release
-or
-< $ sudo apt-get install apt-transport-https ca-certificates curl gnupg lsb-release >
+    
 2. Add Docker’s official GPG key:
-$ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-3. Set up the stable repository:
+$ sudo mkdir -p /etc/apt/keyrings
+$ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+ 
+3. Use the following command to set up the repository: Note its for Ubuntu specific and Not generic Debian
 $ echo \
-  "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
   $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-or
-< echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null >
+  
+Install Docker Engine:
 
-Docker Engine Installation process:
-
-1. Update the apt package index and install the latest version of Docker Engine and containerd or install a specific version.
+1. Update the apt package index, and install the latest version of Docker Engine, containerd, and Docker Compose.
 $ sudo apt-get update
 $ sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
 Note: Receiving a GPG error when running apt-get update?
 Your default umask may not be set correctly, causing the public key file for the repo to not be detected.
 Run the following command and then try to update your repo again: sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
 2. To install a specific version of Docker Engine, list the available versions in the repo, then select and install:
 a. List the versions available in your repo:
 $  apt-cache madison docker-ce
 b. Install a specific version using the version string from the second column e.g. 5:20.10.16~3-0~ubuntu-jammy
 $ sudo apt-get install docker-ce=<VERSION_STRING> docker-ce-cli=<VERSION_STRING> containerd.io docker-compose-plugin
+
 3. Verify that Docker Engine is installed correctly by running the hello-world image.
 $ sudo docker run hello-world
 
