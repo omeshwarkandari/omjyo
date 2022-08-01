@@ -64,8 +64,11 @@ EOF
 # Apply sysctl params without reboot
 $ sysctl --system
 
-2. Cgroup Driver for Docker: To ensure that Container runtime and kubelet cgroup drivers are same otherwise the kubelet process will fail.
-Configure the Docker daemon, in particular to use systemd for the management of the container’s cgroups.
+2. Cgroup Driver for Docker: On Linux, control groups are used to constrain resources that are allocated to processes.
+To ensure that Container runtime and kubelet cgroup drivers are same otherwise the kubelet process will fail.
+Configure the Docker daemon, in particular to use systemd for the management of the container’s cgroups. When systemd is chosen as the init system for a Linux
+distribution, the init process generates and consumes a root control group (cgroup) and acts as a cgroup manager.
+Systemd has a tight integration with cgroups and allocates a cgroup per systemd unit.
 
 $ cd /etc/docker and run below (If no docker dir then sudo mkdir /etc/docker)
 $ cat <<EOF | sudo tee /etc/docker/daemon.json
