@@ -45,7 +45,6 @@ $ swapoff -a
 
 
 
-
 Step 2: Install and configure prerequisites to set-up Kubernetes nodes on Linux: Bridge Network, Cgroup drivers and CRI.
 
 1. Bridge Network: A Bridge Container Network Interface (CNI) plug-in enables all the Pods on a node to connect through virtual switch by assigning each pod
@@ -149,6 +148,7 @@ Shim is a piece of software that resides in between a container manager (contain
 the integration problem of these counterparts.
 clone this repository in your local environment:
 $ git clone https://github.com/Mirantis/cri-dockerd.git
+
 The above step creates a local directory called cri-dockerd which you will need for the following steps.
 To build this code (in a POSIX environment):
 $ mkdir bin
@@ -157,16 +157,18 @@ $ mkdir bin
   go get && go build -ldflags="-X github.com/Mirantis/cri-dockerd/version.Version='$VERSION}' -X 
   github.com/Mirantis/cri-dockerd/version.PreRelease='$PRERELEASE' -X github.com/Mirantis/cri-dockerd/version.BuildTime='$BUILD_DATE' -X 
   github.com/Mirantis/cri-dockerd/version.GitCommit='$REVISION'" -o cri-dockerd
+
 To install, on a Linux system that uses systemd, and already has Docker Engine installed so install Docker Engine before runing it:
 # Run these commands as root
 ###Install GO###
-wget https://storage.googleapis.com/golang/getgo/installer_linux
+$ wget https://storage.googleapis.com/golang/getgo/installer_linux
 chmod +x ./installer_linux
 ./installer_linux
 source ~/.bash_profile
 
-cd cri-dockerd
-mkdir bin
+$ cd cri-dockerd
+
+$ mkdir bin
 go get && go build -o bin/cri-dockerd
 mkdir -p /usr/local/bin
 install -o root -g root -m 0755 bin/cri-dockerd /usr/local/bin/cri-dockerd
@@ -178,10 +180,10 @@ systemctl enable --now cri-docker.socket
 
 Note: overlay2 is the preferred storage driver for systems running Linux kernel version 4.0 or higher, or RHEL or CentOS using version 3.10.0-514 and above.
 Restart Docker and enable on boot:
-sudo systemctl enable docker
-sudo systemctl daemon-reload
-sudo systemctl restart docker
-
+$ sudo systemctl enable docker
+$ sudo systemctl daemon-reload
+$ sudo systemctl restart docker
+$ sudo service docker status
 
 
 
@@ -220,16 +222,68 @@ e.g. we have selected EC2 Instance, Calico Netowrk for pods and Docker Engine as
 $ kubeadm init --apiserver-advertise-address="IP Address" --pod-network-cidr=192.168.0.0/16 --cri-socket=unix:///var/run/cri-dockerd.sock
 
 Your Kubernetes control-plane has initialized successfully!
-o start using your cluster, you need to run the following as a regular user:
+To start using your cluster, you need to run the following as a regular user:
   mkdir -p $HOME/.kube
   sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
   sudo chown $(id -u):$(id -g) $HOME/.kube/config
-Verify cluster proper working using root acoount: $ kubectl cluster-info,  $ kubectl get nodes, $ kubectl get cs
+
+Verify: Cluster can not be access with root user so we need to craete a normal user.
+root@master-node:~# kubectl cluster-info
+To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
+The connection to the server localhost:8080 was refused - did you specify the right host or port?
+root@master-node:~# kubectl get nodes
+The connection to the server localhost:8080 was refused - did you specify the right host or port?
 
 
 
+Step 5: Login with a nornal user e.g. "harness"
+* Create user: $ useradd harness  
+* Craeet user password: $ passwd harness  
+* Add user to admin privilege group of sudoer users and add user into diffrent groups.
+$ visudo 
+{
+# User privilege specification
+root    ALL=(ALL:ALL) ALL
+harness  ALL=(ALL:ALL) ALL
+# Members of the admin group may gain root privileges
+%admin ALL=(ALL) ALL
+harness  ALL=(ALL:ALL) ALL
+# Allow members of group sudo to execute any command
+%sudo   ALL=(ALL:ALL) ALL
+harness  ALL=(ALL:ALL) ALL
+# See sudoers(5) for more information on "@include" directives:
+@includedir /etc/sudoers.d
+harness  ALL=(ALL) NOPASSWD:ALL
+}
+* Create home for user harness:  root@master-node:~# mkdir /home/harness
+* Create a .kube directory inside /home/harness: root@master-node:~# cd /home/harness and root@master-node:/home/harness# mkdir .kube
+* root@master-node:~# cp -i /etc/kubernetes/admin.conf /home/harness/.kube/config
+* root@master-node:~# chown -R harness:harness /home/harness/.kube/config
+Verify: User ownership for the config file.
+root@master-node:~# ls -l /home/harness/.kube/
+total 8
+-rw------- 1 harness harness 5641 Aug  1 05:39 config
+* root@master-node:~# su - harness  (This will change prompt as $)
+$
+$ pwd
+/home/harness
+* Verify Cluster Health:
+$ kubectl cluster-info
+Kubernetes control plane is running at https://172.31.14.174:6443
+CoreDNS is running at https://172.31.14.174:6443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
+$ kubectl get nodes
+NAME          STATUS   ROLES           AGE   VERSION
+master-node   Ready    control-plane   32m   v1.24.3
+$ kubectl get cs
+Warning: v1 ComponentStatus is deprecated in v1.19+
+NAME                 STATUS    MESSAGE                         ERROR
+scheduler            Healthy   ok
+controller-manager   Healthy   ok
+etcd-0               Healthy   {"health":"true","reason":""}
 
-Step 5: Control plane node isolation: By default, your cluster will not schedule Pods on the control plane nodes for security reasons.
+
+Step 6: Control plane node isolation: By default, your cluster will not schedule Pods on the control plane nodes for security reasons.
 If you want to be able to schedule Pods on the control plane nodes, for example for a single machine Kubernetes cluster, run:
 $ kubectl taint nodes --all node-role.kubernetes.io/control-plane- node-role.kubernetes.io/master-
 The output will look something like:
@@ -251,37 +305,7 @@ $ kubectl apply -f calico.yaml
 
 
 
-Step 7: Login with a nornal user e.g. "harness"
-1. Create user: $ useradd harness  
-2. Craeet user password: $ passwd harness  
-3. Add user to admin privilege group of sudoer users and add user into diffrent groups.
-$ visudo 
-{
-# User privilege specification
-root    ALL=(ALL:ALL) ALL
-harness  ALL=(ALL:ALL) ALL
-# Members of the admin group may gain root privileges
-%admin ALL=(ALL) ALL
-harness  ALL=(ALL:ALL) ALL
-# Allow members of group sudo to execute any command
-%sudo   ALL=(ALL:ALL) ALL
-harness  ALL=(ALL:ALL) ALL
-# See sudoers(5) for more information on "@include" directives:
-@includedir /etc/sudoers.d
-harness  ALL=(ALL) NOPASSWD:ALL
-}
-4. Create home for user harness:  root@master-node:~# mkdir /home/harness
-5. Create a .kube directory inside /home/harness:  root@master-node:~# mkdir -p $HOME/harness/.kube
-(Need to experiment whther 5th step is enough to create home for new user as well as dir .kube directory to avoid step 4th)
-5. root@master-node:~# cp -i /etc/kubernetes/admin.conf /home/harness/.kube/config
-6. root@master-node:~# chown -R harness:harness /home/harness/.kube/config
-7. root@master-node:~# su - harness  (This will change prompt as $)
-$
-$ pwd
-/home/harness
-8. $ kubectl get nodes
-NAME          STATUS   ROLES           AGE   VERSION
-master-node   Ready    control-plane   32m   v1.24.3
+
 
 
 
