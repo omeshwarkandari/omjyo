@@ -267,6 +267,7 @@ total 8
 $
 $ pwd
 /home/harness
+
 * Verify Cluster Health:
 $ kubectl cluster-info
 Kubernetes control plane is running at https://172.31.14.174:6443
@@ -281,6 +282,17 @@ NAME                 STATUS    MESSAGE                         ERROR
 scheduler            Healthy   ok
 controller-manager   Healthy   ok
 etcd-0               Healthy   {"health":"true","reason":""}
+$ kubectl get pods --all-namespaces
+NAMESPACE     NAME                                  READY   STATUS    RESTARTS   AGE
+kube-system   coredns-6d4b75cb6d-clrmf              1/1     Running   0          20m
+kube-system   coredns-6d4b75cb6d-s67t6              1/1     Running   0          20m
+kube-system   etcd-master-node                      1/1     Running   0          20m
+kube-system   kube-apiserver-master-node            1/1     Running   0          20m
+kube-system   kube-controller-manager-master-node   1/1     Running   0          20m
+kube-system   kube-proxy-xcht9                      1/1     Running   0          20m
+kube-system   kube-scheduler-master-node            1/1     Running   0          20m
+
+
 
 
 Step 6: Control plane node isolation: By default, your cluster will not schedule Pods on the control plane nodes for security reasons.
