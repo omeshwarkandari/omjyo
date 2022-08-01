@@ -234,7 +234,28 @@ o start using your cluster, you need to run the following as a regular user:
 Verify cluster proper working using root acoount: $ kubectl cluster-info,  $ kubectl get nodes, $ kubectl get cs
 
 
-Step 6: Login with a nornal user e.g. "harness"
+
+Step 6: Control plane node isolation: By default, your cluster will not schedule Pods on the control plane nodes for security reasons.
+If you want to be able to schedule Pods on the control plane nodes, for example for a single machine Kubernetes cluster, run:
+$ kubectl taint nodes --all node-role.kubernetes.io/control-plane- node-role.kubernetes.io/master-
+The output will look something like:
+node "test-01" untainted
+...
+This will remove the node-role.kubernetes.io/control-plane and node-role.kubernetes.io/master taints from any nodes that have them,
+including the control plane nodes, meaning that the scheduler will then be able to schedule Pods everywhere.
+
+
+
+Step 7: Create POD network and DNS services by adding Calico repo:
+Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+  /docs/concepts/cluster-administration/addons/
+For example create PODs using Calico Network.
+$ curl https://docs.projectcalico.org/manifests/calico-typha.yaml -o calico.yaml
+$ kubectl apply -f calico.yaml
+
+
+
+Step 7: Login with a nornal user e.g. "harness"
 1. Create user: $ useradd harness  
 2. Craeet user password: $ passwd harness  
 3. Add user to admin privilege group of sudoer users and add user into diffrent groups.
@@ -267,13 +288,6 @@ NAME          STATUS   ROLES           AGE   VERSION
 master-node   Ready    control-plane   32m   v1.24.3
 
 
-Step 6: Create POD network and DNS services by adding Calico repo:
-Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
-  /docs/concepts/cluster-administration/addons/
-For example create PODs using Calico Network.
-$ curl https://docs.projectcalico.org/manifests/calico-typha.yaml -o calico.yaml
-$ kubectl apply -f calico.yaml
 
-
-Join Nodes:
+Step 8. Join Nodes
 
