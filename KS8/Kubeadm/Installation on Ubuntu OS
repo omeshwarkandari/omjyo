@@ -84,7 +84,8 @@ Install a container runtime into each node in the cluster so that Pods can run t
 Kubernetes uses the Container Runtime Interface (CRI) to interface with your chosen container runtime (CR).
 CR Types: Docker Engine, CRI-O, Containerd and Mirantis Container Runtime
 
-CRI using Docker Engine:
+CRI using Docker Engine: Docker Engine does not implement the CRI which is a requirement for a container runtime to work with Kubernetes. 
+For that reason, an additional service cri-dockerd has to be installed.
 * On each of your nodes, install Docker for your Linux distribution as per Install Docker Engine.
 * Install cri-dockerd, following the instructions in that source code repository (https://github.com/Mirantis/cri-dockerd)
 
