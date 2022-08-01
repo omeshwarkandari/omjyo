@@ -7,7 +7,25 @@ Create a user & copy admin.conf in its Home Dir, Add pod netork Calico repo & in
 Worker Node: Create EC2 Instances, Add docker repo & install docker engine, Set-up the Cgroup=systemd, Add kubernetes repo & kubectl/kubeadm/kubelet 
 and join node to the Master.
 
-Step 1:Basic Configuration
+Step 1:Basic Environment Requirement & Configuration
+* 2 GB or more of RAM per machine and 2 CPUs or more
+* Full network connectivity between all machines in the cluster (public or private network is fine)
+* Unique hostname, MAC address
+* Swap disabled in order for the kubelet to work properly
+* Port Open: 
+Control plane
+Protocol	Direction	Port Range	Purpose	Used By
+TCP	Inbound	6443	Kubernetes API server	All
+TCP	Inbound	2379-2380	etcd server client API	kube-apiserver, etcd
+TCP	Inbound	10250	Kubelet API	Self, Control plane
+TCP	Inbound	10259	kube-scheduler	Self
+TCP	Inbound	10257	kube-controller-manager	Self
+Worker node(s)
+Protocol	Direction	Port Range	Purpose	Used By
+TCP	Inbound	10250	Kubelet API	Self, Control plane
+TCP	Inbound	30000-32767	NodePort Services†	All
+
+Login as root:
 $ sudo su -
 $ apt update
 Set Hostname on Nodes and Hosts file:To give a unique hostname to each of your nodes
@@ -19,6 +37,12 @@ $ cat << EOF >> /etc/hosts
 ipaddress host-name1
 ipaddress host-name2
 EOF
+
+Disable swap : To enable the kubelet to work properly so that pods are deployed in healthy node rather than nodes maanging its resources to accomodate a pod.
+$ sed -i '/swap/d' /etc/fstab
+$ swapoff -a
+
+
 
 
 
@@ -159,42 +183,9 @@ sudo systemctl restart docker
 
 
 
-Step 3: Disable Firewall, SELinux and Swap
-
-Disable Firewall: (The nodes, containers, and pods need to be able to communicate across the cluster to perform their functions. 
-Firewalld is enabled in CentOS by default on the front-end.Add the following ports by entering the listed commands)
-On the Master Node enter:
-sudo firewall-cmd --permanent --add-port=6443/tcp
-sudo firewall-cmd --permanent --add-port=2379-2380/tcp
-sudo firewall-cmd --permanent --add-port=10250/tcp
-sudo firewall-cmd --permanent --add-port=10251/tcp
-sudo firewall-cmd --permanent --add-port=10252/tcp
-sudo firewall-cmd --permanent --add-port=10255/tcp
-sudo firewall-cmd --reload
-Enter the following commands on each worker node:
-sudo firewall-cmd --permanent --add-port=10251/tcp
-sudo firewall-cmd --permanent --add-port=10255/tcp
-firewall-cmd --reload
-or
-systemctl disable firewalld
-systemctl stop firewalld
-
-Disable SELinux: The containers need to access the host filesystem: Security-Enhanced Linux (SELinux) is a Linux kernel security module that provides a 
-mechanism for supporting access control security policies with default restricted all so SELinux needs to be set to permissive mode, which effectively 
-disables its security functions.
-$ setenforce 0
-$ sed -i --follow-symlinks 's/^SELINUX=enforcing/SELINUX=disabled/' /etc/sysconfig/selinux
-or
-$ sudo setenforce 0
-$ sudo sed -i ‘s/^SELINUX=enforcing$/SELINUX=permissive/’ /etc/selinux/config
-
-Disable swap : To enable the kubelet to work properly so that pods are deployed in healthy node rather than nodes maanging its resources to accomodate a pod.
-$ sed -i '/swap/d' /etc/fstab
-$ swapoff -a
 
 
-
-Step 4: Add Kubernetes repository for Debian/Ubuntu:
+Step 3: Add Kubernetes repository for Debian/Ubuntu:
 1. Update the apt package index and install packages needed to use the Kubernetes apt repository:
 $ sudo apt-get update
 $ sudo apt-get install -y apt-transport-https ca-certificates curl
@@ -210,7 +201,8 @@ The kubelet is now restarting every few seconds, as it waits in a crashloop for 
 
 
 
-Step 5: Initialize the Master Kubernetes: 
+
+Step 4: Initialize the Master Kubernetes: 
 Three are three parts to init process - kubeadm Control Plane, Pod network and CRI Socket.
 kubeadm init -  $ kubeadm init --apiserver-advertise-address=<IP Address of the Control Plane/Master Node Host or Private IP of EC2 Host>
 Pod Network init: $ init --pod-network-cidr=192.168.0.0/16
@@ -235,7 +227,8 @@ Verify cluster proper working using root acoount: $ kubectl cluster-info,  $ kub
 
 
 
-Step 6: Control plane node isolation: By default, your cluster will not schedule Pods on the control plane nodes for security reasons.
+
+Step 5: Control plane node isolation: By default, your cluster will not schedule Pods on the control plane nodes for security reasons.
 If you want to be able to schedule Pods on the control plane nodes, for example for a single machine Kubernetes cluster, run:
 $ kubectl taint nodes --all node-role.kubernetes.io/control-plane- node-role.kubernetes.io/master-
 The output will look something like:
@@ -246,12 +239,14 @@ including the control plane nodes, meaning that the scheduler will then be able 
 
 
 
-Step 7: Create POD network and DNS services by adding Calico repo:
+
+Step 6: Create POD network and DNS services by adding Calico repo:
 Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
   /docs/concepts/cluster-administration/addons/
 For example create PODs using Calico Network.
 $ curl https://docs.projectcalico.org/manifests/calico-typha.yaml -o calico.yaml
 $ kubectl apply -f calico.yaml
+
 
 
 
@@ -286,6 +281,7 @@ $ pwd
 8. $ kubectl get nodes
 NAME          STATUS   ROLES           AGE   VERSION
 master-node   Ready    control-plane   32m   v1.24.3
+
 
 
 
