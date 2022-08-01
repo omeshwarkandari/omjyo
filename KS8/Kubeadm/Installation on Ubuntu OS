@@ -210,13 +210,20 @@ The kubelet is now restarting every few seconds, as it waits in a crashloop for 
 
 
 
-Step 5: Initialize the Master Kubernetes:
-$ kubeadm init --apiserver-advertise-address="IP Address of Master Node (Private of EC2)" --pod-network-cidr=192.168.0.0/16
-( Read the instruction which says that run the kubectl or access the cluster using a normal user and root is not recommended)
+Step 5: Initialize the Master Kubernetes: 
+Three are three parts to init process - kubeadm Control Plane, Pod network and CRI Socket.
+kubeadm init -  $ kubeadm init --apiserver-advertise-address=<IP Address of the Control Plane/Master Node Host or Private IP of EC2 Host>
+Pod Network init: $ init --pod-network-cidr=192.168.0.0/16
+CRE init: 
+$ kubeadm init --apiserver-advertise-address=<IP Address> --pod-network-cidr=192.168.0.0/16 --cri-socket=unix:///var/run/cri-dockerd.sock
+IP Address: The IP Address of the node hosting the Control Plane or Master or the Private IP adsressof EC2 Instance hosting CP/Master Node.
+Pod Network add-on: Container Network Interface (CNI) so that your Pods can communicate with each other, --pod-network-cidr=<CIDR>
+CRI Socket: It will depend on the Container Runtime type 
+containerd	unix:///var/run/containerd/containerd.sock
+CRI-O	unix:///var/run/crio/crio.sock
+Docker Engine (using cri-dockerd)	unix:///var/run/cri-dockerd.sock
 
-Note: Multiple CRI sockets.
-Error: "Kubespray fails with "Found multiple CRI sockets, please use --cri-socket to select one"
-Solution: Select a CRI e.g. Docker in our case.
+e.g. we have selected EC2 Instance, Calico Netowrk for pods and Docker Engine as CR.
 $ kubeadm init --apiserver-advertise-address="IP Address" --pod-network-cidr=192.168.0.0/16 --cri-socket=unix:///var/run/cri-dockerd.sock
 
 Your Kubernetes control-plane has initialized successfully!
