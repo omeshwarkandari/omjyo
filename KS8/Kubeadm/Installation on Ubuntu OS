@@ -7,7 +7,7 @@ Create a user & copy admin.conf in its Home Dir, Add pod netork Calico repo & in
 Worker Node: Create EC2 Instances, Add docker repo & install docker engine, Set-up the Cgroup=systemd, Add kubernetes repo & kubectl/kubeadm/kubelet 
 and join node to the Master.
 
-Step 1:Basic Configuration and Installing Pre-requisites
+Step 1:Basic Configuration
 $ sudo su -
 $ apt update
 Set Hostname on Nodes and Hosts file:To give a unique hostname to each of your nodes
@@ -38,37 +38,55 @@ or
 systemctl disable firewalld
 systemctl stop firewalld
 
-Configuring a bridge network and Update Iptables Settings: A Bridge Container Network Interface (CNI) plug-in enables all the Pods on a node to connect 
-through virtual switch by assigning each pod an IP address on the network and Set the net.bridge.bridge-nf-call-iptables to ‘1’ in sysctl config file 
-to ensure that packets are properly processed by IP tables during filtering and port forwarding.
+
+Step 2: Install and configure prerequisites to set-up Kubernetes nodes on Linux: Bridge Network, Cgroup drivers and CRI.
+
+1. Bridge Network: A Bridge Container Network Interface (CNI) plug-in enables all the Pods on a node to connect through virtual switch by assigning each pod
+an IP address on the network and Set the net.bridge.bridge-nf-call-iptables to ‘1’ in sysctl config file to ensure that packets are properly processed by
+IP tables during filtering and port forwarding.
+Verify that the br_netfilter module is loaded by running lsmod | grep br_netfilter.
+To load it explicitly, run sudo modprobe br_netfilter.
+
+$ cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
+overlay
+br_netfilter
+EOF
+
+$ sudo modprobe overlay
+$ sudo modprobe br_netfilter
+
+# sysctl params required by setup, params persist across reboots
 $ cat <<EOF > /etc/sysctl.d/k8s.conf
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
 EOF
+
+# Apply sysctl params without reboot
 $ sysctl --system
 
-Disable SELinux: The containers need to access the host filesystem: Security-Enhanced Linux (SELinux) is a Linux kernel security module that provides a 
-mechanism for supporting access control security policies with default restricted all so SELinux needs to be set to permissive mode, which effectively 
-disables its security functions.
-$ setenforce 0
-$ sed -i --follow-symlinks 's/^SELINUX=enforcing/SELINUX=disabled/' /etc/sysconfig/selinux
-or
-$ sudo setenforce 0
-$ sudo sed -i ‘s/^SELINUX=enforcing$/SELINUX=permissive/’ /etc/selinux/config
+2. Cgroup Driver for Docker: To ensure that Container runtime and kubelet cgroup drivers are same otherwise the kubelet process will fail.
+Configure the Docker daemon, in particular to use systemd for the management of the container’s cgroups.
 
-Disable swap : To enable the kubelet to work properly so that pods are deployed in healthy node rather than nodes maanging its resources to accomodate a pod.
-$ sed -i '/swap/d' /etc/fstab
-$ swapoff -a
+$ cd /etc/docker and run below (If no docker dir then sudo mkdir /etc/docker)
+$ cat <<EOF | sudo tee /etc/docker/daemon.json
+{
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m"
+  },
+  "storage-driver": "overlay2"
+}
+EOF
 
-
-Step2: Enabling Container Runtime Interface (CRI)
-Installing Container Runtimes (CR) - To run containers in Pods, Kubernetes uses a container runtime and Kubernetes uses the Container Runtime Interface (CRI)
-to interface with your chosen container runtime.
-Container Runtime Types: Docker Engine, CRI-O, Containerd and Mirantis Container Runtime
+3.Container Runtime Interface (CRI)
+Install a container runtime into each node in the cluster so that Pods can run there.
+Kubernetes uses the Container Runtime Interface (CRI) to interface with your chosen container runtime (CR).
+CR Types: Docker Engine, CRI-O, Containerd and Mirantis Container Runtime
 
 CRI using Docker Engine:
 * On each of your nodes, install Docker for your Linux distribution as per Install Docker Engine.
-* Install cri-dockerd, following the instructions in that source code repository.
+* Install cri-dockerd, following the instructions in that source code repository (https://github.com/Mirantis/cri-dockerd)
 
 Install Docker Engine:
 Supported storage drivers: On Debian/Ubuntu the Docker Engine uses the overlay2 storage driver by default while AUFS need to be configured manually. 
@@ -114,7 +132,9 @@ $ sudo apt-get install docker-ce=<VERSION_STRING> docker-ce-cli=<VERSION_STRING>
 3. Verify that Docker Engine is installed correctly by running the hello-world image.
 $ sudo docker run hello-world
 
-Install cri-dockerd:
+Install cri-dockerd: This adapter provides a shim for Docker Engine that lets you control Docker via the Kubernetes Container Runtime Interface. 
+Shim is a piece of software that resides in between a container manager (containerd, cri-o, podman) and a container runtime (runc, crun) solving 
+the integration problem of these counterparts.
 clone this repository in your local environment:
 $ git clone https://github.com/Mirantis/cri-dockerd.git
 The above step creates a local directory called cri-dockerd which you will need for the following steps.
@@ -144,27 +164,24 @@ systemctl daemon-reload
 systemctl enable cri-docker.service
 systemctl enable --now cri-docker.socket
 
-
-Step 3: Set up the Cgroup Driver for Docker: To ensure that Container runtime and kubelet cgroup drivers are same otherwise the kubelet process will fail.
-Configure the Docker daemon, in particular to use systemd for the management of the container’s cgroups.
-
-$ cd /etc/docker and run below (If no docker dir then sudo mkdir /etc/docker)
-$ cat <<EOF | sudo tee /etc/docker/daemon.json
-{
-  "exec-opts": ["native.cgroupdriver=systemd"],
-  "log-driver": "json-file",
-  "log-opts": {
-    "max-size": "100m"
-  },
-  "storage-driver": "overlay2"
-}
-EOF
-
 Note: overlay2 is the preferred storage driver for systems running Linux kernel version 4.0 or higher, or RHEL or CentOS using version 3.10.0-514 and above.
 Restart Docker and enable on boot:
 sudo systemctl enable docker
 sudo systemctl daemon-reload
 sudo systemctl restart docker
+
+Disable SELinux: The containers need to access the host filesystem: Security-Enhanced Linux (SELinux) is a Linux kernel security module that provides a 
+mechanism for supporting access control security policies with default restricted all so SELinux needs to be set to permissive mode, which effectively 
+disables its security functions.
+$ setenforce 0
+$ sed -i --follow-symlinks 's/^SELINUX=enforcing/SELINUX=disabled/' /etc/sysconfig/selinux
+or
+$ sudo setenforce 0
+$ sudo sed -i ‘s/^SELINUX=enforcing$/SELINUX=permissive/’ /etc/selinux/config
+
+Disable swap : To enable the kubelet to work properly so that pods are deployed in healthy node rather than nodes maanging its resources to accomodate a pod.
+$ sed -i '/swap/d' /etc/fstab
+$ swapoff -a
 
 
 Step 4: Add Kubernetes repository for Debian/Ubuntu:
