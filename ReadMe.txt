@@ -1,0 +1,52 @@
+EPIC: Create CICD Pipeline in Jenkins to Stop/Start Database in AWS
+
+Components:
+1. Jenkins Server
+2. RDS DB Instance with Port 3306 open for the local laptop or EC2 Instance hosting Jenkins
+
+Steps:
+1. AWS CLI Version 2 in EC2 Instance running Jenkins.
+2. AWS Configure to use Credentilas to connect to EC2 Instance Hosting Database.
+3. Install AWS-CREDENTIAL plug-in in Jenkins (CloudBees AWS Credentials).
+4. Test the connectivity using Pipeline1 to display "aws --version" output as a connectivity test between Jenkins and AWS.
+5. If we add "aws ec2 describe-instances" then build will fail with the error for aws credentials.
+6. Add AWS key & Secrets in the Manage Credential -- Global (Domain) -- Kind (AWS Credentials) and provide a unique name to ID & Description.
+7. Create a wrapper for the step command (sh '''    aws --version    aws ec2 describe-instances   ''') using the Pipelie Syntax.
+8. Pipeline Syntax -- choose "with crdentials: Bind credentials to variables) -- add "AWS access key & secret" under Bindind -- Generate Pipeline Script
+output:
+ withCredentials([aws(accessKeyVariable:'AWS_ACCESS_KEY_ID',credentialsId:'credentials',secretKeyVariable:'AWS_SECRET_ACCESS_KEY')]) {
+    // some block
+}
+where 'AWS_ACCESS_KEY_ID' & 'AWS_SECRET_ACCESS_KEY' calls the actual Access Key and Secret while credentials' is the description for ID Description.
+9. Add this in the step as shown in Pipeline3 by replacing "// some block" with actual command script wherein it gets wrapped by the Pipeline Script.
+10. Build should be successful with o/p with ec2 instance details.
+11. Replace the pipeline script by adding credentials in the envionment section as shown in pipeline4.
+   "Test=credentials('credentials')" where "Test" can be any be anything Hello/Mytest etc. 
+12. Build the pipeline for Stop/Start DB using the Synopsis.
+
+aws rds
+  stop-db-instance
+--db-instance-identifier <value>
+[--db-snapshot-identifier <value>]
+[--cli-input-json | --cli-input-yaml]
+[--generate-cli-skeleton <value>]
+[--debug]
+[--endpoint-url <value>]
+[--no-verify-ssl]
+[--no-paginate]
+[--output <value>]
+[--query <value>]
+[--profile <value>]
+[--region <value>]
+[--version <value>]
+[--color <value>]
+[--no-sign-request]
+[--ca-bundle <value>]
+[--cli-read-timeout <value>]
+[--cli-connect-timeout <value>]
+[--cli-binary-format <value>]
+[--no-cli-pager]
+[--cli-auto-prompt]
+[--no-cli-auto-prompt]
+
+	
