@@ -1,0 +1,17 @@
+pipeline {
+    agent any
+    environment {
+        AWS_DEFAULT_REGION="us-east-1"
+		Test=credentials('credentials')
+    }
+    stages {
+        stage('Hello') {
+            steps {
+                sh '''
+                  aws --version
+                  aws rds stop-db-instance --db-instance-identifier test-db 
+                '''                
+            }        
+        }
+    }
+}
