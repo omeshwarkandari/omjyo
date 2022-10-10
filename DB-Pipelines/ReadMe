@@ -1,3 +1,8 @@
+Create a RDS Database in a custom VPC and use Jenkis CICD to start/stop the Database
+
+ref link:
+https://awscli.amazonaws.com/v2/documentation/api/latest/reference/rds/create-db-instance.html
+https://shisho.dev/dojo/providers/aws/Amazon_RDS/aws-db-instance/
 Ref: https://www.bing.com/videos/search?q=video+of+a+jenkins+pipeline+to+stop+Database+in+AWS&docid=608029853343296427&mid=C83AF51BCC872377C004C83AF51BCC872377C004&view=detail&FORM=VIRE
 
 EPIC: Create CICD Pipeline in Jenkins to Stop/Start Database in AWS
