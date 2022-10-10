@@ -12,7 +12,13 @@ Components:
 2. RDS DB Instance with Port 3306 open for the local laptop or EC2 Instance hosting Jenkins
 
 Steps:
-1. AWS CLI Version 2 in EC2 Instance running Jenkins.
+1. AWS CLI Version 2 in EC2 Instance running Jenkins and config the profile default or named.
+$ aws configure 
+or 
+$ aws configure  --profile user1
+$ export AWS_PROFILE=user1
+$ set AWS_PROFILE user1
+or use Shared Credentials file {~/.aws/credentilas}
 2. AWS Configure to use Credentilas to connect to EC2 Instance Hosting Database.
 3. Install AWS-CREDENTIAL plug-in in Jenkins (CloudBees AWS Credentials).
 4. Test the connectivity using Pipeline1 to display "aws --version" output as a connectivity test between Jenkins and AWS.
