@@ -1,0 +1,14 @@
+count - The number of identical resources to create. 
+Above you can see I have used count parameter to create two subnets.
+I could have said count = 2, but what if in the future I wanted another subnet in the third AZ. That's why I have used length function with count.
+
+length determines the length of a given list, map, or string.
+In our case, length of the variable called"azs"  is 2 (eu-west-2a and eu-west-2a), so two subnets are created.
+If I add one more AZ to the list then count will become 3 and three subnets will be created.
+
+Element retrieves a single element from a list. In our example, we have a variable called prod-intra-subnets with two subnets (list).
+We need to provide these subnet CIDRs one by one while creating a subnet. By using element function,
+I'm instructing Terraform to pick the subnet CIDR one by one in a loop.
+
+Let's take a look at the NAT Gateway tag, for "tag Name", I am using ${count.index} otherwise I will have a same tag for all resources.
+I have used count.index to get the index of each “iteration” in the “loop”.
