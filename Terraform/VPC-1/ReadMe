@@ -1,0 +1,1 @@
+Terraform template to create a VPC with multiple subnets (Public and Private) and multiple NAT Gateways.
