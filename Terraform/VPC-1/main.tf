@@ -40,6 +40,8 @@ resource "aws_internet_gateway" "itg" {
 }
 
 
+### This will create both local route as well as route for 0.0.0.0/0
+
 resource "aws_route_table" "public_rt" {
   vpc_id = aws_vpc.demo.id
   route {
