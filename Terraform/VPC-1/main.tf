@@ -70,7 +70,7 @@ resource "aws_route_table" "private_rt" {
 		nat_gateway_id = aws_nat_gateway.ntg[count.index].id	
 	}
     tags = {
-    Name = "${var.namespace}-private_rt}"
+    Name = "${var.namespace}-private_rt"
   }
 }
 
