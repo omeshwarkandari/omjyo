@@ -50,7 +50,7 @@ resource "aws_route_table" "public_rt" {
   }
   depends_on = [aws_internet_gateway.itg]
   tags = {
-    Name = "${var.namespace}-public_rt}"
+    Name = "${var.namespace}-public_rt"
   }
 }	
 
@@ -70,7 +70,7 @@ resource "aws_route_table" "private_rt" {
 		nat_gateway_id = aws_nat_gateway.ntg[count.index].id	
 	}
     tags = {
-    Name = "${var.namespace}-private_rt"
+    Name = "${var.namespace}-private_rt-${count.index+1}"
   }
 }
 
@@ -84,16 +84,16 @@ resource "aws_route_table_association" "private_rt" {
 # NAT resources: This will create 2 NAT gateways in 2 Public Subnets for 2 different Private Subnets.
 
 resource "aws_eip" "nat" {
-  count = 2
+  count = length(var.private_subnet_cidr_blocks)
   vpc = true
   tags = {
-    Name = "${var.namespace}-eip-${count.index+1}"
+    Name = "${var.namespace}-eip${count.index+1}"
   }
 }
 
 resource "aws_nat_gateway" "ntg" {
   depends_on = [aws_internet_gateway.itg]
-  count = 2  
+  count = length(var.private_subnet_cidr_blocks)  
   allocation_id = aws_eip.nat[count.index].id
   subnet_id     = aws_subnet.public[count.index].id
   tags = {
