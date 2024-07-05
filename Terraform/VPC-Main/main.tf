@@ -60,14 +60,16 @@ resource "aws_route_table_association" "public-subnet-association" {
   route_table_id = aws_route_table.dev-public-rtable.id
 }
 
-#EIP
+# EIP
 resource "aws_eip" "nat-eip" {
   count = length(var.azs)
-  vpc   = true
+  domain = "vpc"
 
   tags = {
     Name = "${var.namespace}-eip-${count.index + 1}"
   }
+
+  depends_on = [aws_internet_gateway.dev-igw]
 }
 
 #NAT gateway
